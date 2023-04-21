@@ -330,6 +330,95 @@ public class Inventory {
         }
 
     }
+
+	//Strategy Pattern
+	public interface DiscountStrategy {
+        double getDiscountRate();
+    }
+
+    public class SaleDiscount implements DiscountStrategy {
+
+        @Override
+        public double getDiscountRate() {
+            return 5;
+        }
+        
+    }
+
+    public class PresidentDayDiscount implements DiscountStrategy {
+
+        @Override
+        public double getDiscountRate() {
+            return 10;
+        }
+
+    }
+
+    public class MemorialDayDiscount implements DiscountStrategy {
+
+        @Override
+        public double getDiscountRate() {
+            return 15;
+        }
+
+    }
+
+    public class ChristmasDiscount implements DiscountStrategy {
+
+        @Override
+        public double getDiscountRate() {
+            return 20;
+        }
+
+    }
+
+    public class ClearanceDiscount implements DiscountStrategy {
+
+        @Override
+        public double getDiscountRate() {
+            return 25;
+        }
+
+    }
+
+    public class WholesalerDiscount implements DiscountStrategy {
+
+        @Override
+        public double getDiscountRate() {
+            return 30;
+        }
+
+    }
+
+    public class MembersOnlyDiscount implements DiscountStrategy {
+
+        @Override
+        public double getDiscountRate() {
+            return 35;
+        }
+
+    }
+
+    public class LiquidationDiscount implements DiscountStrategy {
+
+        @Override
+        public double getDiscountRate() {
+            return 40;
+        }
+
+    }
+
+    public class DiscountContext {
+        private DiscountStrategy strategy;
+
+        public DiscountContext(DiscountStrategy strategy) {
+            this.strategy = strategy;
+        }
+
+        public double executeStrategy() {
+            return strategy.getDiscountRate();
+        }
+    }
 	
 	/*
 	 * TODO Enum, Eager and Lazy factory implementations for Item and Person
