@@ -5,9 +5,10 @@ package edu.neu.csye7374;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 import edu.neu.csye7374.Inventory.Item.ItemBuilder;
-import edu.neu.csye7374.Inventory.Person.PersonBuilder;
+
 
 /**
  * @author pratiknakave
@@ -25,7 +26,7 @@ public class Inventory {
         private String description;
         private String boughtItem;
 
-        public Item(Builder builder) {
+        public Item(ItemBuilder builder) {
             this.id = builder.id;
             this.itemTag = builder.itemTag;
             this.price = builder.price;
@@ -40,35 +41,41 @@ public class Inventory {
             this.description = description;
         }
 
-        public static class Builder {
+        @Override
+        public int compareTo(SellableAPI o) {
+            Item new_o = (Item) o;
+            return this.getId() - new_o.getId();
+        }
+
+        public static class ItemBuilder {
             private int id;
             private String itemTag;
             private double price;
             private String description;
 
-            public static Builder newInstance() {
-                return new Builder();
+            public static ItemBuilder newInstance() {
+                return new ItemBuilder();
             }
 
-            private Builder() {
+            private ItemBuilder() {
             }
 
-            public Builder setId(int id) {
+            public ItemBuilder setId(int id) {
                 this.id = id;
                 return this;
             }
 
-            public Builder setItemTag(String name) {
+            public ItemBuilder setItemTag(String name) {
                 this.itemTag = name;
                 return this;
             }
 
-            public Builder setPrice(double price) {
+            public ItemBuilder setPrice(double price) {
                 this.price = price;
                 return this;
             }
 
-            public Builder setDescription(String desc) {
+            public ItemBuilder setDescription(String desc) {
                 this.description = desc;
                 return this;
             }
@@ -109,24 +116,29 @@ public class Inventory {
             return this.description;
         }
 
-        @Override
-        public int compareTo(Driver.SellableAPI o) {
-            Item new_o = (Item) o;
-            return this.getId() - new_o.getId();
+
+        public int compareTo(Item o) {
+            return this.getId() - o.getId();
         }
 
+    }
+
+    private interface SellableAPI {
+        int getId();
+
+        String getItemName();
+
+        double getPrice();
+
+        String getDescription();
     }
     
     static class Employee extends Person {
         private boolean isStudent;
         private boolean isEmployed;
 
-        public Employee(Builder builder) {
-            this.id = builder.id;
-            this.fName = builder.fName;
-            this.lName = builder.lName;
-            this.age = builder.age;
-            this.salary = builder.salary;
+        public Employee(PersonBuilder builder) {
+            super(builder);
         }
 
         public boolean getIsStudent() {
@@ -137,50 +149,6 @@ public class Inventory {
             return isEmployed;
         }
 
-        static class Builder {   
-            private int id;
-            private String fName;
-            private String lName;
-            private int age;
-            private double salary;
-
-            public static Builder newInstance() {
-                return new Builder();
-            }
-
-            private Builder() {
-            }
-
-            public Builder setSalary(double salary) {
-                this.salary = salary;
-                return this;
-            }
-
-            public Builder setId(int id) {
-                this.id = id;
-                return this;
-            }
-
-            public Builder setfName(String name) {
-                this.fName = name;
-                return this;
-            }
-
-            public Builder setlName(String name) {
-                this.lName = name;
-                return this;
-            }
-
-            public Builder setAge(int age) {
-                this.age = age;
-                return this;
-            }
-
-            public Person build() {
-                return new Employee(this);
-            }
-
-        }
 
         public void setIsStudent(boolean isStudent) {
             this.isStudent = isStudent;
@@ -195,6 +163,11 @@ public class Inventory {
             return super.toString() + " ,isEmployed=" + isEmployed + ", isStudent=" + isStudent + "]";
         }
 
+    }
+
+
+    public interface SingletonFactory {
+        public Object getObject(String csv);
     }
 
 	public static class ItemFactory implements SingletonFactory {
@@ -229,7 +202,7 @@ public class Inventory {
             name = items.get(2);
             description = items.get(3);
 
-            return Item.Builder.newInstance().setId(id).setItemTag(name).setDescription(description).setPrice(Price)
+            return ItemBuilder.newInstance().setId(id).setItemTag(name).setDescription(description).setPrice(Price)
                     .build();
         }
 
@@ -260,6 +233,15 @@ public class Inventory {
         protected int age;
         protected double salary;
 
+        public Person(PersonBuilder builder)
+        {
+            this.id = builder.id;
+            this.fName = builder.fName;
+            this.lName = builder.lName;
+            this.age = builder.age;
+            this.salary = builder.salary;
+
+        }
         public int getId() {
             return id;
         }
@@ -280,10 +262,52 @@ public class Inventory {
             return salary;
         }
 
-        @Override
-        public int compareTo(Driver.Person o) {
-            return Integer.compare(this.getId(), o.getId());
+
+        static class PersonBuilder {
+            private int id;
+            private String fName;
+            private String lName;
+            private int age;
+            private double salary;
+
+            public static PersonBuilder newInstance() {
+                return new PersonBuilder();
+            }
+
+            private PersonBuilder() {
+            }
+
+            public PersonBuilder setSalary(double salary) {
+                this.salary = salary;
+                return this;
+            }
+
+            public PersonBuilder setId(int id) {
+                this.id = id;
+                return this;
+            }
+
+            public PersonBuilder setfName(String name) {
+                this.fName = name;
+                return this;
+            }
+
+            public PersonBuilder setlName(String name) {
+                this.lName = name;
+                return this;
+            }
+
+            public PersonBuilder setAge(int age) {
+                this.age = age;
+                return this;
+            }
+
+            public Person build() {
+                return new Employee(this);
+            }
+
         }
+
 
         @Override
         public String toString() {
@@ -291,6 +315,10 @@ public class Inventory {
                     + ", Salary =" + salary + "]";
         }
 
+        @Override
+        public int compareTo(Person o) {
+            return Integer.compare(this.getId(), o.getId());
+        }
     }
 
     public static class PeopleFactory implements SingletonFactory {
@@ -326,7 +354,7 @@ public class Inventory {
             lName = people.get(3);
             salary = Double.parseDouble(people.get(4));
 
-            return Employee.Builder.newInstance().setId(id).setAge(age).setfName(fName).setlName(lName).setSalary(salary).build();
+            return Employee.PersonBuilder.newInstance().setId(id).setAge(age).setfName(fName).setlName(lName).setSalary(salary).build();
         }
 
     }
