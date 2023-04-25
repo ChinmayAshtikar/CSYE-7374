@@ -3,7 +3,9 @@
  */
 package edu.neu.csye7374;
 
+import java.io.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import edu.neu.csye7374.Inventory.Item.ItemBuilder;
 
@@ -20,9 +22,17 @@ public class Inventory {
      * TODO Student complete implementation
      */
     private interface StoreAPI {
-        void add(Person person);
+
 
         void add(SellableAPI item);
+
+        void addEmployees(Person person);
+
+        void saveEmployees();
+
+        void loadEmployees();
+
+        List<Person> getEmployees();
 
         void sortEmployees(Comparator<Person> c);
 
@@ -35,22 +45,17 @@ public class Inventory {
         private List<SellableAPI> perishableItemList = new ArrayList<>();
         private List<SellableAPI> nonPerishableItemList = new ArrayList<>();
         private List<SellableAPI> allItems = new ArrayList<>();
-        private List<Person> personList = new ArrayList<>();
+        private List<Person> employeeList = new ArrayList<>();
+        FacadeAPI facadeAPI;
+
 
 
 
         public Store() {
             super();
+            facadeAPI = new Facade();
         }
 
-        @Override
-        public void add(Person person) {
-            if (!(personList.contains(person))) {
-                personList.add(person);
-            } else {
-                new Exception("Object Already exists");
-            }
-        }
 
         @Override
         public void add(SellableAPI item) {
@@ -69,8 +74,30 @@ public class Inventory {
         }
 
         @Override
+        public void addEmployees(Person person) {
+            if(!employeeList.contains(person)) {
+                employeeList.add(person);
+            }
+        }
+
+        @Override
+        public void saveEmployees() {
+            facadeAPI.save(employeeList);
+        }
+
+        @Override
+        public void loadEmployees() {
+            this.employeeList = facadeAPI.load();
+        }
+
+        @Override
+        public List<Person> getEmployees() {
+            return employeeList;
+        }
+
+        @Override
         public void sortEmployees(Comparator<Person> c) {
-            Collections.sort(personList, c);
+            Collections.sort(employeeList, c);
         }
 
         @Override
@@ -519,6 +546,52 @@ public class Inventory {
             return 40;
         }
 
+    }
+
+
+
+    private static interface FacadeAPI {
+        void save(List<Person> programData);
+        List<Person> load();
+    }
+
+    static public class Facade implements FacadeAPI{
+        private static final String fileName = "EmployeeRoster";
+        @Override
+        public void save(List<Person> programData) {
+            try(FileOutputStream fileOutputStream = new FileOutputStream(fileName);
+                ObjectOutputStream out = new ObjectOutputStream(fileOutputStream)) {
+
+                for(Person person : programData){
+                    out.writeObject(person);
+                 }
+            } catch (IOException e) {
+                System.out.println(e.getMessage());
+            }
+
+        }
+
+        @Override
+        public List<Person> load() {
+            List<Person> persons = new ArrayList<>();
+
+            try(FileInputStream fileInputStream = new FileInputStream(fileName);
+                ObjectInputStream inputStream = new ObjectInputStream(fileInputStream)){
+                while (true) {
+                    try {
+                        Person p = (Person) inputStream.readObject();
+                        persons.add(p);
+                    } catch (EOFException | ClassNotFoundException e) {
+                        break;
+                    }
+                }
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return persons;
+        }
     }
 
     public class DiscountContext {
