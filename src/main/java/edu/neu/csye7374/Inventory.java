@@ -3,9 +3,7 @@
  */
 package edu.neu.csye7374;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 import edu.neu.csye7374.Inventory.Item.ItemBuilder;
 
@@ -15,8 +13,78 @@ import edu.neu.csye7374.Inventory.Item.ItemBuilder;
  *
  */
 public class Inventory {
-	
-	
+
+
+    /**
+     * StoreAPI interface
+     * TODO Student complete implementation
+     */
+    private interface StoreAPI {
+        void add(Person person);
+
+        void add(SellableAPI item);
+
+        void sortEmployees(Comparator<Person> c);
+
+        void sortItems(Comparator<SellableAPI> c);
+    }
+
+
+    private class Store implements StoreAPI {
+        private String name = null;
+        private List<SellableAPI> perishableItemList = new ArrayList<>();
+        private List<SellableAPI> nonPerishableItemList = new ArrayList<>();
+        private List<SellableAPI> allItems = new ArrayList<>();
+        private List<Person> personList = new ArrayList<>();
+
+
+
+        public Store() {
+            super();
+        }
+
+        @Override
+        public void add(Person person) {
+            if (!(personList.contains(person))) {
+                personList.add(person);
+            } else {
+                new Exception("Object Already exists");
+            }
+        }
+
+        @Override
+        public void add(SellableAPI item) {
+
+            if(item != null){
+                if(item.isPerishable() && !perishableItemList.contains(item)) {
+                    perishableItemList.add(item);
+                    allItems.add(item);
+                } if( !item.isPerishable() && !nonPerishableItemList.contains(item)) {
+                    nonPerishableItemList.add(item);
+                    allItems.add(item);
+                } else {
+                    System.out.println("Item already exists");
+                }
+            }
+        }
+
+        @Override
+        public void sortEmployees(Comparator<Person> c) {
+            Collections.sort(personList, c);
+        }
+
+        @Override
+        public void sortItems(Comparator<SellableAPI> c) {
+            Collections.sort(allItems, c);
+        }
+
+        /**
+         * TODO BY STUDENT
+         *
+         * Implement StoreAPI, etc.
+         */
+
+    } // end Store class
 	
 	
 	public static class Item implements SellableAPI, Comparable<SellableAPI> {
@@ -25,13 +93,17 @@ public class Inventory {
         private double price;
         private String description;
         private String boughtItem;
+        private boolean isPerishable;
 
         public Item(ItemBuilder builder) {
             this.id = builder.id;
             this.itemTag = builder.itemTag;
             this.price = builder.price;
             this.description = builder.description;
+            this.isPerishable = builder.isPerishable;
         }
+
+
 
         public void setPrice(double price) {
             this.price = price;
@@ -52,12 +124,18 @@ public class Inventory {
             private String itemTag;
             private double price;
             private String description;
+            private boolean isPerishable;
 
             public static ItemBuilder newInstance() {
                 return new ItemBuilder();
             }
 
             private ItemBuilder() {
+            }
+
+            public ItemBuilder setIsPerishable(boolean val) {
+                this.isPerishable = val;
+                return this;
             }
 
             public ItemBuilder setId(int id) {
@@ -116,6 +194,11 @@ public class Inventory {
             return this.description;
         }
 
+        @Override
+        public boolean isPerishable() {
+            return this.isPerishable;
+        }
+
 
         public int compareTo(Item o) {
             return this.getId() - o.getId();
@@ -131,6 +214,8 @@ public class Inventory {
         double getPrice();
 
         String getDescription();
+
+        boolean isPerishable();
     }
     
     static class Employee extends Person {
