@@ -1,7 +1,5 @@
 package edu.neu.csye7374;
 
-import java.util.ArrayList;
-import java.util.List;
 
 public class Consumer {
 	private int id;
