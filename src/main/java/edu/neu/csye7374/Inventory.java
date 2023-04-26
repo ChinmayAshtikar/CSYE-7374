@@ -791,6 +791,38 @@ public class Inventory {
 				return price;
 			}
 
+			public String getName() {
+				return name;
+			}
+
+			public void setName(String name) {
+				this.name = name;
+			}
+
+			public String getDesc() {
+				return desc;
+			}
+
+			public void setDesc(String desc) {
+				this.desc = desc;
+			}
+
+			public List<SellableAPI> getItems() {
+				return items;
+			}
+
+			public void setItems(List<SellableAPI> items) {
+				this.items = items;
+			}
+
+			public void setId(int id) {
+				this.id = id;
+			}
+
+			public void setPrice(double price) {
+				this.price = price;
+			}
+
 			public void addItem(OrderAPI o, SellableAPI item) {
 				items.add(item);
 			}
@@ -885,6 +917,42 @@ public class Inventory {
 
 		public void addItem(OrderAPI order, SellableAPI item) {
 			items.add(item);
+		}
+
+		public String getDesc() {
+			return desc;
+		}
+
+		public void setDesc(String desc) {
+			this.desc = desc;
+		}
+
+		public boolean isPerishable() {
+			return perishable;
+		}
+
+		public void setPerishable(boolean perishable) {
+			this.perishable = perishable;
+		}
+
+		public List<SellableAPI> getItems() {
+			return items;
+		}
+
+		public void setItems(List<SellableAPI> items) {
+			this.items = items;
+		}
+
+		public void setId(int id) {
+			this.id = id;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+
+		public void setPrice(double price) {
+			this.price = price;
 		}
 
 		public double getPrice() {
@@ -1201,6 +1269,30 @@ public class Inventory {
 			return super.isPerishable();
 		}
 
+	}
+	
+	public interface IInventoryOperations{
+		public String generateReceipt(OrderAPI orders);
+	}
+	
+	static class InventoryOperations implements IInventoryOperations{
+
+		@Override
+		public String generateReceipt(OrderAPI order) {
+			// TODO Auto-generated method stub
+			System.out.println("Optional Menu:");
+
+			StringBuilder builder = new StringBuilder();
+			builder.append("Id").append("\t").append("Name").append("\t").append("Price").append("\n");
+			System.out.println(builder.toString());
+			System.out.println("---------------------------");
+
+			order.g.forEach(x -> System.out.println(x));
+
+			System.out.println();
+			return null;
+		}
+		
 	}
 
 	public static void demo() {
