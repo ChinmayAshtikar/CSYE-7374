@@ -1,5 +1,6 @@
 package edu.neu.csye7374;
 
+
 public class Consumer {
 	private int id;
 	private String name;
@@ -34,4 +35,7 @@ public class Consumer {
 		this.money-=money;
 		return true;
 	}
+
 }
+
+
