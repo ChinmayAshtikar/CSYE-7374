@@ -533,7 +533,7 @@ public class Inventory {
 		}
 
 	}
-	
+
 	public class DiscountContext {
 		private DiscountStrategy strategy;
 
@@ -718,6 +718,8 @@ public class Inventory {
 		String getDescription();
 
 		boolean isPerishable();
+
+		List<SellableAPI> getItems();
 	}
 
 	private interface OrderComponentAPI {
@@ -757,7 +759,33 @@ public class Inventory {
 			return description;
 		}
 
-		private List<SellableAPI> orders = new ArrayList<>();
+		public List<SellableAPI> getItems() {
+			return items;
+		}
+
+		public void setItems(List<SellableAPI> items) {
+			this.items = items;
+		}
+
+		public void setId(int id) {
+			this.id = id;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+
+		public void setPrice(double price) {
+			this.price = price;
+		}
+
+		public void setDescription(String description) {
+			this.description = description;
+		}
+
+		public void setPerishable(boolean perishable) {
+			this.perishable = perishable;
+		}
 
 		public void add(SellableAPI api) {
 			items.add(api);
@@ -767,7 +795,7 @@ public class Inventory {
 		@Override
 		public String toString() {
 			return "Order [id=" + id + ", name=" + name + ", price=" + price + ", description=" + description
-					+ ", items=" + items + ", orders=" + orders + "]";
+					+ ", items=" + items;
 		}
 
 		static class IndividualOrder extends Order implements OrderComponentAPI {
@@ -849,7 +877,7 @@ public class Inventory {
 					this.desc = desc;
 					return this;
 				}
-				
+
 				public IndividualOrderBuilder withPerishable(boolean perishable) {
 					this.perishable = perishable;
 					return this;
@@ -866,9 +894,8 @@ public class Inventory {
 
 				@Override
 				public String toString() {
-					return "IndividualOrderBuilder [name=" + name + ", price=" + price + ", id=" + id + 
-							", desc=" + desc + ", perishable=" + perishable
-							+ "]";
+					return "IndividualOrderBuilder [name=" + name + ", price=" + price + ", id=" + id + ", desc=" + desc
+							+ ", perishable=" + perishable + "]";
 				}
 			}
 
@@ -1020,7 +1047,7 @@ public class Inventory {
 				this.desc = desc;
 				return this;
 			}
-			
+
 			public ComboOrderBuilder withPerishable(boolean perishable) {
 				this.perishable = perishable;
 				return this;
@@ -1225,7 +1252,7 @@ public class Inventory {
 		}
 
 	}
-	
+
 	static class InsuranceDecorator extends ItemDecoratorAPI {
 		private static final double INSURANCE_PRICE = 100.0;
 
@@ -1270,6 +1297,66 @@ public class Inventory {
 			return super.isPerishable();
 		}
 
+	}
+
+	public interface IInventoryOperations {
+		public void generateReceipt(OrderAPI order);
+	}
+
+	static class InventoryOperations implements IInventoryOperations {
+
+		@Override
+		public void generateReceipt(OrderAPI order) {
+			// TODO Auto-generated method stub
+			System.out.println("Optional Menu:");
+
+			StringBuilder builder = new StringBuilder();
+			builder.append("Id").append("\t").append("Name").append("\t").append("Price").append("\n");
+			System.out.println(builder.toString());
+			System.out.println("---------------------------");
+
+			order.getItems().forEach(x -> System.out.println(x));
+
+			System.out.println("---------------------------");
+			System.out.println("Order:" + order.getPrice());
+
+			System.out.println();
+		}
+	}
+
+	interface Command {
+		void execute();
+	}
+
+	static class GenerateReceiptCmd implements Command {
+
+		private OrderAPI order;
+		private IInventoryOperations iInventoryOperations;
+
+		public GenerateReceiptCmd(OrderAPI order, IInventoryOperations iInventoryOperations) {
+			this.order = order;
+			this.iInventoryOperations = iInventoryOperations;
+		}
+
+		public void execute() {
+			iInventoryOperations.generateReceipt(order);
+		}
+	}
+
+	static class CommandExecution {
+		private List<Command> commands = new ArrayList<>();
+
+		// invoker class - what to execute but not aware of implementation
+		public void addCommand(Command command) {
+			this.commands.add(command);
+		}
+
+		// batch execution
+		public void executeCommands() {
+			for (Command command : commands) {
+				command.execute();
+			}
+		}
 	}
 
 	public static void demo() {
