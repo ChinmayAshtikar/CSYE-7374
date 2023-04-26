@@ -9,6 +9,8 @@ import java.util.*;
 
 import edu.neu.csye7374.Inventory.Item.ItemBuilder;
 import edu.neu.csye7374.*;
+import edu.neu.csye7374.Consumer.Observer;
+import edu.neu.csye7374.Consumer.Subject;
 
 /**
  * @author pratiknakave
@@ -1271,8 +1273,80 @@ public class Inventory {
 		}
 
 	}
+	
+	// Observer Pattern to notify when inventory is full
+	
+	public interface Observer {
+	    void update(boolean isFull);
+	}
+	
+	public interface Subject {
+	    void registerObserver(Observer observer);
+	    void removeObserver(Observer observer);
+	    void notifyObservers();
+	}
+	
+	public class User implements Observer {
+	    private String name;
+
+	    public User(String name) {
+	        this.name = name;
+	    }
+
+	    @Override
+	    public void update(boolean isFull) {
+	        if (isFull) {
+	            System.out.println("Notification to " + name + ": Inventory is full.");
+	        } else {
+	            System.out.println("Notification to " + name + ": Inventory is not full.");
+	        }
+	    }
+	}
+	
+	public class InventoryStorage implements Subject {
+	    private List<Observer> observers;
+	    private int capacity;
+	    private int itemCount;
+
+	    public InventoryStorage(int capacity) {
+	        observers = new ArrayList<>();
+	        this.capacity = capacity;
+	        itemCount = 0;
+	    }
+
+	    @Override
+	    public void registerObserver(Observer observer) {
+	        observers.add(observer);
+	    }
+
+	    @Override
+	    public void removeObserver(Observer observer) {
+	        observers.remove(observer);
+	    }
+
+	    @Override
+	    public void notifyObservers() {
+	        boolean isFull = itemCount == capacity;
+	        for (Observer observer : observers) {
+	            observer.update(isFull);
+	        }
+	    }
+
+	    public void addItem() {
+	        if (itemCount < capacity) {
+	            itemCount++;
+	            notifyObservers();
+	        }
+	    }
+	}
+	
+	
 
 	public static void demo() {
+		
+		
+		
+		
 
 		/*
 		 * TODO Create objects using Enum, Eager and Lazy factory implementations for
