@@ -1271,30 +1271,6 @@ public class Inventory {
 		}
 
 	}
-	
-	public interface IInventoryOperations{
-		public String generateReceipt(OrderAPI orders);
-	}
-	
-	static class InventoryOperations implements IInventoryOperations{
-
-		@Override
-		public String generateReceipt(OrderAPI order) {
-			// TODO Auto-generated method stub
-			System.out.println("Optional Menu:");
-
-			StringBuilder builder = new StringBuilder();
-			builder.append("Id").append("\t").append("Name").append("\t").append("Price").append("\n");
-			System.out.println(builder.toString());
-			System.out.println("---------------------------");
-
-			order.g.forEach(x -> System.out.println(x));
-
-			System.out.println();
-			return null;
-		}
-		
-	}
 
 	public static void demo() {
 
