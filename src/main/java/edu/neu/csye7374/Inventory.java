@@ -367,11 +367,33 @@ public class Inventory {
 
 		boolean isPerishable();
 	}
+        
+        static class EmployeeBuilder extends  edu.neu.csye7374.Inventory.Person.PersonBuilder{
+        	private List<Employee> subordinates;
+            public static EmployeeBuilder newInstance() {
+				return new EmployeeBuilder();
+			}
+
+			private EmployeeBuilder() {
+			}
+			public EmployeeBuilder setlName(List<Employee> subordinates) {
+				this.subordinates = subordinates;
+				return this;
+			}
+			public Person build() {
+				return new Employee(this);
+			}
+        }
 
 	static class Employee extends Person {
 		private boolean isStudent;
 		private boolean isEmployed;
 		private Date hireDate = new Date();
+		private List<Employee> subordinates;
+
+		public List<Employee> getSubordinates() {
+			return subordinates;
+		}
 
 		public Employee(PersonBuilder builder) {
 			super(builder);
@@ -561,6 +583,7 @@ public class Inventory {
 			}
 
 		}
+                 
 
 		@Override
 		public String toString() {
@@ -1564,14 +1587,22 @@ public class Inventory {
 	// The Concrete Command class that buys items
 	static class BuyItemsCommand implements Command {
 	    private InventoryManager inventoryManager;
+	    private Producer producer;
+	    private Consumer consumer;
 
 	    public BuyItemsCommand(InventoryManager inventoryManager) {
 	        this.inventoryManager = inventoryManager;
+	    }
+	    public BuyItemsCommand(InventoryManager inventoryManager, Producer producer, Consumer consumer) {
+	        this.inventoryManager = inventoryManager;
+	        this.producer = producer;
+	        this.consumer = consumer;
 	    }
 
 	    public void execute() {
 	        if (inventoryManager.getInventoryCount() > 0) { // check if inventory is not empty
 	            System.out.println("Buying items...");
+	            //producer.updateMoney(0);
 	            // Code to buy items
 	            inventoryManager.setInventoryCount(inventoryManager.getInventoryCount() - 1); // decrease inventory count
 	        } else {
@@ -1676,7 +1707,12 @@ public class Inventory {
 	        return false;
 	    }
 	}
-
+	public static void checkStoreState(Store store) {
+		if(store.getState().isOpen())
+			System.out.println("Store is open.");
+		else
+			System.out.println("Store is closed.");
+	}
 
 	public static void demo() {
 		
@@ -1706,7 +1742,8 @@ public class Inventory {
 		
 		//Store is close
 		store.close();
-		System.out.println("Store is open: "+store.getState().isOpen());
+		checkStoreState(store);
+		//System.out.println("Store is open: "+store.getState().isOpen());
 		
 		
 		
