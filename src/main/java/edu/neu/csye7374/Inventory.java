@@ -28,6 +28,15 @@ import javax.mail.Session;
  */
 public class Inventory {
 
+	public static final Inventory instance = new Inventory();
+	private Inventory(){
+
+	}
+
+	public static Inventory getInstance(){
+		return instance;
+	}
+
 	/**
 	 * StoreAPI interface TODO Student complete implementation
 	 */
@@ -46,6 +55,13 @@ public class Inventory {
 		void sortEmployees(Comparator<Person> c);
 
 		void sortItems(Comparator<SellableAPI> c);
+	}
+	private Store store;
+	public void setStore(Store store){
+		this.store = store;
+	}
+	public Store getStore(){
+		return this.store;
 	}
 
 	public static class Store implements StoreAPI {
@@ -131,6 +147,50 @@ public class Inventory {
 		 */
 
 	} // end Store class
+
+	public static class AnnualReviewTask extends TimerTask {
+		Inventory inventory = Inventory.getInstance();
+
+		List<Person> employees = inventory.getStore().getEmployees();
+		Date curr = new Date();
+		int currDay = curr.getDay();
+		int currMonth = curr.getMonth();
+		int currYear = curr.getYear();
+		SendEmail sendMail = new SendEmail();
+
+		@Override
+		public void run() {
+			synchronized(Employee.class){
+				for(Person p : employees) {
+					Employee e = (Employee) p;
+					Date d = e.getHireDate();
+					int day = d.getDay();
+					int year = d.getYear();
+					int month = d.getMonth();
+					if(day == currDay && month == currMonth && (currYear-year == 1)){
+						sendMail.sendAnnualReviewMail(p);
+					}
+				}
+			}
+
+		}
+	}
+
+
+
+	public static class TaskScheduler {
+
+
+		public static void scheduleTasks(){
+
+			Timer timer = new Timer();
+//			timer.schedule(new AnnualReviewTask(), 0, 240000);
+
+        timer.schedule(new AnnualReviewTask(), 0, 24 * 60 * 60 * 1000); //runs every day
+
+
+		}
+	}
 
 	public static class SendEmail{
 
@@ -1543,8 +1603,11 @@ public class Inventory {
 
 
 	public static void demo() {
-		
-		Store store = new Inventory.Store();
+
+		Inventory inventory = Inventory.getInstance();
+		Store store = new Store();
+		inventory.setStore(store);
+
 		//Store is open
 		System.out.println("Store is open: "+store.getState().isOpen());
 		
