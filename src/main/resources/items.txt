@@ -1,0 +1,5 @@
+1,3.99,Apple,Fruit,true
+2,4.99,Apple,Fruit,false
+3,5.99,Apple,Fruit,true
+4,6.99,Apple,Fruit,true
+5,7.99,Apple,Fruit,false

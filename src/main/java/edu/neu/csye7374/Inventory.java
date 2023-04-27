@@ -3,7 +3,7 @@
  */
 package edu.neu.csye7374;
 
-import edu.neu.csye7374.Inventory.Item.ItemBuilder;
+import edu.neu.csye7374.*;
 
 import javax.mail.*;
 import javax.mail.internet.InternetAddress;
@@ -17,7 +17,6 @@ import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.util.*;
 
-
 /**
  * @author pratiknakave
  *
@@ -25,11 +24,12 @@ import java.util.*;
 public class Inventory {
 
 	public static final Inventory instance = new Inventory();
-	private Inventory(){
+
+	private Inventory() {
 
 	}
 
-	public static Inventory getInstance(){
+	public static Inventory getInstance() {
 		return instance;
 	}
 
@@ -44,6 +44,8 @@ public class Inventory {
 
 		void loadEmployees();
 
+		void loadItems();
+
 		List<Person> getEmployees();
 
 		List<SellableAPI> getPerishableItems();
@@ -56,11 +58,14 @@ public class Inventory {
 
 		void sortItems(Comparator<SellableAPI> c);
 	}
+
 	private Store store;
-	public void setStore(Store store){
+
+	public void setStore(Store store) {
 		this.store = store;
 	}
-	public Store getStore(){
+
+	public Store getStore() {
 		return this.store;
 	}
 
@@ -90,16 +95,12 @@ public class Inventory {
 					calendar.add(Calendar.DAY_OF_MONTH, 10);
 					Date expiry = calendar.getTime();
 					item.setExpiryDate(expiry);
-					System.out.println("M Date: " + today + " Expiry Date: " + item.getExpiryDate());
 					perishableItemList.add(item);
-					allItems.add(item);
 				}
 				if (!item.isPerishable() && !nonPerishableItemList.contains(item)) {
 					nonPerishableItemList.add(item);
-					allItems.add(item);
-				} else {
-					System.out.println("Item already exists");
 				}
+				allItems.add(item);
 			}
 		}
 
@@ -113,6 +114,11 @@ public class Inventory {
 		@Override
 		public void loadEmployees() {
 			this.employeeList = facadeAPI.load();
+		}
+
+		@Override
+		public void loadItems() {
+			facadeAPI.loadItems();
 		}
 
 		@Override
@@ -144,18 +150,18 @@ public class Inventory {
 		public void sortItems(Comparator<SellableAPI> c) {
 			Collections.sort(allItems, c);
 		}
-		
+
 		public StoreState getState() {
-	        return state;
-	    }
-	    
-	    public void open() {
-	        state = new OpenStoreState();
-	    }
-	    
-	    public void close() {
-	        state = new ClosedStoreState();
-	    }
+			return state;
+		}
+
+		public void open() {
+			state = new OpenStoreState();
+		}
+
+		public void close() {
+			state = new ClosedStoreState();
+		}
 
 		/**
 		 * TODO BY STUDENT
@@ -176,18 +182,18 @@ public class Inventory {
 
 		@Override
 		public void run() {
-			synchronized(Employee.class){
-				for(Person p : employees) {
+			synchronized (Employee.class) {
+				for (Person p : employees) {
 					Employee e = (Employee) p;
 					Date d = e.getHireDate();
 					int day = d.getDay();
 					int year = d.getYear();
 					int month = d.getMonth();
-					if(day == currDay && month == currMonth && (currYear-year == 1)){
+					if (day == currDay && month == currMonth && (currYear - year == 1)) {
 						sendMail.sendAnnualReviewMail(p);
 					}
 
-					//Testing
+					// Testing
 //					if(true){
 //						sendMail.sendAnnualReviewMail(p);
 //					}
@@ -203,12 +209,11 @@ public class Inventory {
 		Date currentDate = new Date();
 		SendEmail sendEmail = new SendEmail();
 
-
 		@Override
 		public void run() {
 
-			for(SellableAPI item : perishableItems) {
-				if(item.getExpiryDate() != null) {
+			for (SellableAPI item : perishableItems) {
+				if (item.getExpiryDate() != null) {
 					Date expiry = item.getExpiryDate();
 					Calendar calendar = Calendar.getInstance();
 					calendar.setTime(expiry);
@@ -216,7 +221,7 @@ public class Inventory {
 					calendar.add(Calendar.DAY_OF_MONTH, -10);
 					Date tenDaysAgo = calendar.getTime();
 
-					if(currentDate.getTime() - tenDaysAgo.getTime() == 0){
+					if (currentDate.getTime() - tenDaysAgo.getTime() == 0) {
 						sendEmail.sendItemMail(item);
 					}
 //					if(true){
@@ -225,15 +230,13 @@ public class Inventory {
 
 				}
 
-
 			}
 		}
 	}
 
 	public static class TaskScheduler {
 
-
-		public static void scheduleTasks(){
+		public static void scheduleTasks() {
 
 			Timer timer = new Timer();
 			timer.schedule(new AnnualReviewTask(), 0, 180000);
@@ -244,33 +247,36 @@ public class Inventory {
 		}
 	}
 
-	public static class SendEmail{
+	public static class SendEmail {
 
 		Session session;
 		String FromEmail = "daycare23csye6200@gmail.com";
 		String fBase = "eXd6aHlpdXdkc3htbmJqcg==";
-		public SendEmail(){
-			Properties properties = new Properties();
-			properties.put("mail.smtp.auth","true");
-			properties.put("mail.smtp.starttls.enable","true");
-			properties.put("mail.smtp.host","smtp.gmail.com");
-			properties.put("mail.smtp.port",587);
 
-			session = Session.getDefaultInstance(properties,new javax.mail.Authenticator() {
-				protected PasswordAuthentication getPasswordAuthentication(){
-					return new PasswordAuthentication("daycare23csye6200", new String(Base64.getDecoder().decode(fBase)));
+		public SendEmail() {
+			Properties properties = new Properties();
+			properties.put("mail.smtp.auth", "true");
+			properties.put("mail.smtp.starttls.enable", "true");
+			properties.put("mail.smtp.host", "smtp.gmail.com");
+			properties.put("mail.smtp.port", 587);
+
+			session = Session.getDefaultInstance(properties, new javax.mail.Authenticator() {
+				protected PasswordAuthentication getPasswordAuthentication() {
+					return new PasswordAuthentication("daycare23csye6200",
+							new String(Base64.getDecoder().decode(fBase)));
 				}
 			});
 		}
 
 		public void sendAnnualReviewMail(Person person) {
-			if(person != null) {
+			if (person != null) {
 				MimeMessage message = new MimeMessage(session);
 				try {
 					message.setFrom(new InternetAddress(FromEmail));
 					message.setSubject("Reminder: Your annual review is due today");
-					message.setText("Dear " + person.getfName()+ "," + "\n" + "Your annual review is due today"+ "\n" + "Sincerly, \n StoreTeam");
-					if(person.getEmailID() != null) {
+					message.setText("Dear " + person.getfName() + "," + "\n" + "Your annual review is due today" + "\n"
+							+ "Sincerly, \n StoreTeam");
+					if (person.getEmailID() != null) {
 						message.addRecipient(Message.RecipientType.TO, new InternetAddress(person.getEmailID()));
 						Transport.send(message);
 					}
@@ -286,7 +292,8 @@ public class Inventory {
 			try {
 				message.setFrom(new InternetAddress(FromEmail));
 				message.setSubject("Reminder: Items Expiry");
-				message.setText("Dear Store Manager" +  "," + "\n" + "Item name : "+ item.getItemName() + " Item will expire in next 10 days"+ "\n" + "Sincerly, \n StoreTeam");
+				message.setText("Dear Store Manager" + "," + "\n" + "Item name : " + item.getItemName()
+						+ " Item will expire in next 10 days" + "\n" + "Sincerly, \n StoreTeam");
 				message.addRecipient(Message.RecipientType.TO, new InternetAddress("bhatti.r@northeastern.edu"));
 				Transport.send(message);
 
@@ -298,7 +305,7 @@ public class Inventory {
 
 	}
 
-	public static class Item implements SellableAPI, Comparable<SellableAPI> {
+	static class Item implements SellableAPI, Comparable<SellableAPI> {
 		private int id;
 		private String itemTag;
 		private double price;
@@ -338,7 +345,7 @@ public class Inventory {
 			this.expiryDate = expiryDate;
 		}
 
-		public static class ItemBuilder {
+		static class ItemBuilder {
 			private int id;
 			private String itemTag;
 			private double price;
@@ -435,103 +442,105 @@ public class Inventory {
 
 		Date getExpiryDate();
 	}
-        
+
 	private static List<Employee> readEmployeesFromCSV(String fileName) {
-        List<Employee> emps = new ArrayList<>();
-        Path pathToFile = Paths.get(fileName);
+		List<Employee> emps = new ArrayList<>();
+		Path pathToFile = Paths.get(fileName);
 
-        // create an instance of BufferedReader
-        // using try with resource, Java 7 feature to close resources
-        try (BufferedReader br = Files.newBufferedReader(pathToFile,
-                StandardCharsets.US_ASCII)) {
+		// create an instance of BufferedReader
+		// using try with resource, Java 7 feature to close resources
+		try (BufferedReader br = Files.newBufferedReader(pathToFile, StandardCharsets.US_ASCII)) {
 
-            // read the first line from the text file
-            String line = br.readLine();
+			// read the first line from the text file
+			String line = br.readLine();
 
-            // loop until all lines are read
-            while (line != null) {
+			// loop until all lines are read
+			while (line != null) {
 
-                // use string.split to load a string array with the values from
-                // each line of
-                // the file, using a comma as the delimiter
-                String[] attributes = line.split(",");
+				// use string.split to load a string array with the values from
+				// each line of
+				// the file, using a comma as the delimiter
+				String[] attributes = line.split(",");
 
-                Employee emp = createEmployee(attributes);
+				Employee emp = createEmployee(attributes);
 
-                // adding book into ArrayList
-                emps.add(emp);
+				// adding book into ArrayList
+				emps.add(emp);
 
-                // read next line before looping
-                // if end of file reached, line would be null
-                line = br.readLine();
-            }
+				// read next line before looping
+				// if end of file reached, line would be null
+				line = br.readLine();
+			}
 
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-        }
+		} catch (IOException ioe) {
+			ioe.printStackTrace();
+		}
 
-        return emps;
-    }
+		return emps;
+	}
+
 	private static Employee createEmployee(String[] metadata) {
 		int id = Integer.parseInt(metadata[0]);
-        String fName = metadata[1];
-        String lName = metadata[2];
-        int age = Integer.parseInt(metadata[3]);
-        double salary = Double.parseDouble(metadata[4]);
-        String emailId = metadata[5];
-        
-        
-        int price = Integer.parseInt(metadata[1]);
-        String author = metadata[2];
+		String fName = metadata[1];
+		String lName = metadata[2];
+		int age = Integer.parseInt(metadata[3]);
+		double salary = Double.parseDouble(metadata[4]);
+		String emailId = metadata[5];
 
-        // create and return book of this metadata
-       
-        return new Employee(EmployeeBuilder.newInstance().setId(id).setAge(age).setfName(fName).setlName(lName)
-        		.setSalary(salary).setEmailID(emailId));
-        //Employee.PersonBuilder.newInstance().setId(id).setAge(age).setfName(fName).setlName(lName)
-		//.setSalary(salary).setEmailID(emailID).build();
-    }
+		int price = Integer.parseInt(metadata[1]);
+		String author = metadata[2];
 
-        static class EmployeeBuilder extends  edu.neu.csye7374.Inventory.Person.PersonBuilder{
-        	private List<Employee> subordinates;
-        	private boolean isStudent;
-    		private boolean isEmployed;
-            public boolean isStudent() {
-				return isStudent;
-			}
+		// create and return book of this metadata
 
-			public void setStudent(boolean isStudent) {
-				this.isStudent = isStudent;
-			}
+		return new Employee(EmployeeBuilder.newInstance().setId(id).setAge(age).setfName(fName).setlName(lName)
+				.setSalary(salary).setEmailID(emailId));
+		// Employee.PersonBuilder.newInstance().setId(id).setAge(age).setfName(fName).setlName(lName)
+		// .setSalary(salary).setEmailID(emailID).build();
+	}
 
-			public boolean isEmployed() {
-				return isEmployed;
-			}
+	static class EmployeeBuilder extends edu.neu.csye7374.Inventory.Person.PersonBuilder {
+		private List<Employee> subordinates;
+		private boolean isStudent;
+		private boolean isEmployed;
 
-			public void setEmployed(boolean isEmployed) {
-				this.isEmployed = isEmployed;
-			}
+		public boolean isStudent() {
+			return isStudent;
+		}
 
-			public static EmployeeBuilder newInstance() {
-				return new EmployeeBuilder();
-			}
+		public void setStudent(boolean isStudent) {
+			this.isStudent = isStudent;
+		}
 
-			private EmployeeBuilder() {
-			}
-			public EmployeeBuilder setSubordinates(List<Employee> subordinates) {
-				this.subordinates = subordinates;
-				return this;
-			}
-			public Employee build() {
-				return new Employee(this);
-			}
-        }
+		public boolean isEmployed() {
+			return isEmployed;
+		}
+
+		public void setEmployed(boolean isEmployed) {
+			this.isEmployed = isEmployed;
+		}
+
+		public static EmployeeBuilder newInstance() {
+			return new EmployeeBuilder();
+		}
+
+		private EmployeeBuilder() {
+		}
+
+		public EmployeeBuilder setSubordinates(List<Employee> subordinates) {
+			this.subordinates = subordinates;
+			return this;
+		}
+
+		public Employee build() {
+			return new Employee(this);
+		}
+	}
 
 	static class Employee extends Person {
 		private boolean isStudent;
 		private boolean isEmployed;
 		private Date hireDate = new Date();
-		//private List<Employee> subordinates;
+		// private List<Employee> subordinates;
 
 //		public List<Employee> getSubordinates() {
 //			return subordinates;
@@ -539,9 +548,10 @@ public class Inventory {
 
 		public Employee(EmployeeBuilder builder) {
 			super(builder);
-                        this.isEmployed=builder.isEmployed;
-                        this.isStudent=builder.isStudent;
+			this.isEmployed = builder.isEmployed;
+			this.isStudent = builder.isStudent;
 		}
+
 		public Employee(PersonBuilder builder) {
 			super(builder);
 		}
@@ -615,8 +625,8 @@ public class Inventory {
 			description = items.get(3);
 			perishable = Boolean.parseBoolean(items.get(4));
 
-			return ItemBuilder.newInstance().setId(id).setItemTag(name).setDescription(description)
-					.setPrice(price).setIsPerishable(perishable).build();
+			return Item.ItemBuilder.newInstance().setId(id).setItemTag(name).setDescription(description).setPrice(price)
+					.setIsPerishable(perishable).build();
 		}
 
 	}
@@ -688,6 +698,7 @@ public class Inventory {
 			private int age;
 			private double salary;
 			private String emailID;
+
 			public static PersonBuilder newInstance() {
 				return new PersonBuilder();
 			}
@@ -730,7 +741,6 @@ public class Inventory {
 			}
 
 		}
-                 
 
 		@Override
 		public String toString() {
@@ -790,7 +800,7 @@ public class Inventory {
 		double getDiscountRate();
 	}
 
-	public class SaleDiscount implements DiscountStrategy {
+	static class SaleDiscount implements DiscountStrategy {
 
 		@Override
 		public double getDiscountRate() {
@@ -799,7 +809,7 @@ public class Inventory {
 
 	}
 
-	public class PresidentDayDiscount implements DiscountStrategy {
+	static class PresidentDayDiscount implements DiscountStrategy {
 
 		@Override
 		public double getDiscountRate() {
@@ -808,7 +818,7 @@ public class Inventory {
 
 	}
 
-	public class MemorialDayDiscount implements DiscountStrategy {
+	static class MemorialDayDiscount implements DiscountStrategy {
 
 		@Override
 		public double getDiscountRate() {
@@ -817,7 +827,7 @@ public class Inventory {
 
 	}
 
-	public class ChristmasDiscount implements DiscountStrategy {
+	static class ChristmasDiscount implements DiscountStrategy {
 
 		@Override
 		public double getDiscountRate() {
@@ -826,7 +836,7 @@ public class Inventory {
 
 	}
 
-	public class ClearanceDiscount implements DiscountStrategy {
+	static class ClearanceDiscount implements DiscountStrategy {
 
 		@Override
 		public double getDiscountRate() {
@@ -835,7 +845,7 @@ public class Inventory {
 
 	}
 
-	public class WholesalerDiscount implements DiscountStrategy {
+	static class WholesalerDiscount implements DiscountStrategy {
 
 		@Override
 		public double getDiscountRate() {
@@ -844,7 +854,7 @@ public class Inventory {
 
 	}
 
-	public class MembersOnlyDiscount implements DiscountStrategy {
+	static class MembersOnlyDiscount implements DiscountStrategy {
 
 		@Override
 		public double getDiscountRate() {
@@ -853,7 +863,7 @@ public class Inventory {
 
 	}
 
-	public class LiquidationDiscount implements DiscountStrategy {
+	static class LiquidationDiscount implements DiscountStrategy {
 
 		@Override
 		public double getDiscountRate() {
@@ -862,24 +872,31 @@ public class Inventory {
 
 	}
 
-	public class DiscountContext {
+	static class DiscountContext {
 		private DiscountStrategy strategy;
+		private OrderAPI order;
+		DecimalFormat df = new DecimalFormat("##");
 
-		public DiscountContext(DiscountStrategy strategy) {
+		public DiscountContext(DiscountStrategy strategy, OrderAPI order) {
 			this.strategy = strategy;
+			this.order = order;
 		}
 
 		public double executeStrategy() {
-			return strategy.getDiscountRate();
+			double total = (strategy.getDiscountRate() * order.getPrice()) / 100;
+			return Double.valueOf(df.format(total));
 		}
 	}
 
 	private static interface FacadeAPI {
 		List<Person> load();
+
+		void loadItems();
 	}
 
 	static public class Facade implements FacadeAPI {
 		private static final String fileName = "src/main/resources/Employees.txt";
+		private static final String itemFileName = "src/main/resources/items.txt";
 
 		@Override
 		public List<Person> load() {
@@ -887,12 +904,10 @@ public class Inventory {
 			Store store = inventory.getStore();
 			List<Person> employees = new ArrayList<>();
 
-			try (FileReader fileReader = new FileReader(fileName);
-				BufferedReader br = new BufferedReader(fileReader)) {
+			try (FileReader fileReader = new FileReader(fileName); BufferedReader br = new BufferedReader(fileReader)) {
 				String line;
-				while((line = br.readLine())!= null && line.length() > 0){
-					Employee emp1 = (Employee) PersonFactory.getInstance()
-							.getObject(line);
+				while ((line = br.readLine()) != null && line.length() > 0) {
+					Employee emp1 = (Employee) PersonFactory.getInstance().getObject(line);
 					emp1.setIsEmployed(true);
 					emp1.setHireDate(new Date());
 					employees.add(emp1);
@@ -905,6 +920,27 @@ public class Inventory {
 				e.printStackTrace();
 			}
 			return employees;
+		}
+
+		@Override
+		public void loadItems() {
+			// TODO Auto-generated method stub
+			Inventory inventory = Inventory.getInstance();
+			Store store = inventory.getStore();
+
+			try (FileReader fileReader = new FileReader(itemFileName);
+					BufferedReader br = new BufferedReader(fileReader)) {
+				String line;
+				while ((line = br.readLine()) != null && line.length() > 0) {
+					SellableAPI item = (SellableAPI) ItemFactory.getInstance().getObject(line);
+					store.add(item);
+				}
+
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -1634,9 +1670,9 @@ public class Inventory {
 		}
 
 	}
-	
+
 	// Observer Pattern to notify when inventory is full
-	
+
 //	public interface Observer {
 //	    void update(boolean isFull);
 //	}
@@ -1700,40 +1736,39 @@ public class Inventory {
 //	        }
 //	    }
 //	}
-	
 
 	// The Observer interface
 	interface Observer {
-	    void update();
+		void update();
 	}
 
 	// The Observable subject class
 	static class InventoryManager {
-	    private List<Observer> observers = new ArrayList<>();
-	    private int inventoryCount = 0;
+		private List<Observer> observers = new ArrayList<>();
+		private int inventoryCount = 0;
 
-	    public int getInventoryCount() {
-	        return inventoryCount;
-	    }
+		public int getInventoryCount() {
+			return inventoryCount;
+		}
 
-	    public void setInventoryCount(int count) {
-	        inventoryCount = count;
-	        notifyObservers();
-	    }
+		public void setInventoryCount(int count) {
+			inventoryCount = count;
+			notifyObservers();
+		}
 
-	    public void addObserver(Observer observer) {
-	        observers.add(observer);
-	    }
+		public void addObserver(Observer observer) {
+			observers.add(observer);
+		}
 
-	    public void removeObserver(Observer observer) {
-	        observers.remove(observer);
-	    }
+		public void removeObserver(Observer observer) {
+			observers.remove(observer);
+		}
 
-	    public void notifyObservers() {
-	        for (Observer observer : observers) {
-	            observer.update();
-	        }
-	    }
+		public void notifyObservers() {
+			for (Observer observer : observers) {
+				observer.update();
+			}
+		}
 	}
 
 	// The Command interface
@@ -1742,58 +1777,57 @@ public class Inventory {
 //	}
 
 	// The Concrete Command class that buys items
-	static class BuyItemsCommand implements Command {
-	    private InventoryManager inventoryManager;
-	    private Producer producer;
-	    private Consumer consumer;
-
-	    public BuyItemsCommand(InventoryManager inventoryManager) {
-	        this.inventoryManager = inventoryManager;
-	    }
-	    public BuyItemsCommand(InventoryManager inventoryManager, Producer producer, Consumer consumer) {
-	        this.inventoryManager = inventoryManager;
-	        this.producer = producer;
-	        this.consumer = consumer;
-	    }
-
-	    public void execute() {
-	        if (inventoryManager.getInventoryCount() > 0) { // check if inventory is not empty
-	            System.out.println("Buying items...");
-	            //producer.updateMoney(0);
-	            // Code to buy items
-	            inventoryManager.setInventoryCount(inventoryManager.getInventoryCount() - 1); // decrease inventory count
-	        } else {
-	            System.out.println("Inventory is empty, cannot buy items.");
-	        }
-	    }
-	}
+//	static class BuyItemsCommand implements Command {
+//		private InventoryManager inventoryManager;
+//		private Producer producer;
+//		private Consumer consumer;
+//
+//		public BuyItemsCommand(InventoryManager inventoryManager) {
+//			this.inventoryManager = inventoryManager;
+//		}
+//
+//		public BuyItemsCommand(InventoryManager inventoryManager, Producer producer, Consumer consumer) {
+//			this.inventoryManager = inventoryManager;
+//			this.producer = producer;
+//			this.consumer = consumer;
+//		}
+//
+//		public void execute() {
+//			if (inventoryManager.getInventoryCount() > 0) { // check if inventory is not empty
+//				System.out.println("Buying items...");
+//				// producer.updateMoney(0);
+//				// Code to buy items
+//				inventoryManager.setInventoryCount(inventoryManager.getInventoryCount() - 1); // decrease inventory
+//																								// count
+//			} else {
+//				System.out.println("Inventory is empty, cannot buy items.");
+//			}
+//		}
+//	}
 
 	// The Concrete Observer class that invokes the Command
 	static class InventoryObserver implements Observer {
-	    private Command command;
+		private Command command;
 
-	    public InventoryObserver(Command command) {
-	        this.command = command;
-	    }
+		public InventoryObserver(Command command) {
+			this.command = command;
+		}
 
-	    public void update() {
-	        command.execute();
-	    }
+		public void update() {
+			command.execute();
+		}
 	}
 
 	// The main method that sets up the Observer and Command pattern
 
-
-	
-
 	public interface IInventoryOperations {
-		public void generateReceipt(OrderAPI order);
+		public void generateReceipt(OrderAPI order, DiscountStrategy discount);
 	}
 
 	static class InventoryOperations implements IInventoryOperations {
 
 		@Override
-		public void generateReceipt(OrderAPI order) {
+		public void generateReceipt(OrderAPI order, DiscountStrategy discount) {
 			// TODO Auto-generated method stub
 			System.out.println("Optional Menu:");
 
@@ -1803,9 +1837,11 @@ public class Inventory {
 			System.out.println("---------------------------");
 
 			order.getItems().forEach(x -> System.out.println(x));
+			DiscountContext dc = new DiscountContext(discount, order);
+			double price = dc.executeStrategy();
 
 			System.out.println("---------------------------");
-			System.out.println("Order:" + order.getPrice());
+			System.out.println("Order:" + price);
 
 			System.out.println();
 		}
@@ -1827,7 +1863,7 @@ public class Inventory {
 		}
 
 		public void execute() {
-			iInventoryOperations.generateReceipt(order);
+			iInventoryOperations.generateReceipt(order, new SaleDiscount());
 		}
 	}
 
@@ -1846,116 +1882,130 @@ public class Inventory {
 			}
 		}
 	}
-	
-	
-	//Store open/close with state pattern
+
+	// Store open/close with state pattern
 	public interface StoreState {
-	    boolean isOpen();
+		boolean isOpen();
 	}
 
 	public static class OpenStoreState implements StoreState {
-	    public boolean isOpen() {
-	        return true;
-	    }
+		public boolean isOpen() {
+			return true;
+		}
 	}
 
 	public static class ClosedStoreState implements StoreState {
-	    public boolean isOpen() {
-	        return false;
-	    }
+		public boolean isOpen() {
+			return false;
+		}
 	}
+
 	public static void checkStoreState(Store store) {
-		if(store.getState().isOpen())
+		if (store.getState().isOpen())
 			System.out.println("Store is open.");
 		else
 			System.out.println("Store is closed.");
 	}
 
 	public static void demo() {
-		
-        InventoryManager inventoryManager = new InventoryManager();
-        BuyItemsCommand buyItemsCommand = new BuyItemsCommand(inventoryManager);
-        InventoryObserver inventoryObserver = new InventoryObserver(buyItemsCommand);
 
-        inventoryManager.addObserver(inventoryObserver);
-        inventoryManager.setInventoryCount(10); // set initial inventory count
+		InventoryManager inventoryManager = new InventoryManager();
+		// InventoryObserver inventoryObserver = new InventoryObserver(buyItemsCommand);
 
-        inventoryManager.setInventoryCount(0); // set inventory count to test if the command is invoked or not
-
+//		inventoryManager.addObserver(inventoryObserver);
+//		inventoryManager.setInventoryCount(10); // set initial inventory count
+//
+//		inventoryManager.setInventoryCount(0); // set inventory count to test if the command is invoked or not
 
 		Inventory inventory = Inventory.getInstance();
 		Store store = new Store();
 		inventory.setStore(store);
 
-		//Store is open
-		System.out.println("Store is open: "+store.getState().isOpen());
-		
-		//Need csv for items like below
-		Item i = Inventory.ItemFactory.getInstance().getObject("1,3.99,Apple,Fruit,true");
-		store.add(i);
-		System.out.println(i);
-		
-		//Need csv for person like below
-		Person p = Inventory.PersonFactory.getInstance().getObject("1,26,fName,lName,120000,bhatti.r@northeastern.edu");
-		System.out.println(p);
+		// Store is open
+		System.out.println("Store is open: " + store.getState().isOpen());
 
-		Employee emp1 = (Employee) PersonFactory.getInstance().getObject("9,12,Andy, Poi,1000,bhatti.r@northeastern.edu");
-		emp1.setIsEmployed(true);
-		emp1.setHireDate(new Date());
 		store.loadEmployees();
-		store.addEmployees(emp1);
-
+		System.out.println("Size of Employees list: ");
 		System.out.println(store.getEmployees().size());
+		store.loadItems();
+		System.out.println("Size of Item list: ");
+		System.out.println(store.getAllItems().size());
+		System.out.println("Size of NonPerishableItems list: ");
+		System.out.println(store.getNonPerishableItems().size());
+		System.out.println("Size of PerishableItems list: ");
+		System.out.println(store.getPerishableItems().size());
 
 		// Add Items and add employees then run scheduler
 
 		TaskScheduler.scheduleTasks();
 
-
-		//Store is close
+		// Store is close
 		store.close();
 		checkStoreState(store);
-		//System.out.println("Store is open: "+store.getState().isOpen());
-		System.out.println(System. getProperty("user. dir"));
-		Path currentDirectoryPath = FileSystems.getDefault().getPath("");
-		String currentDirectoryName = currentDirectoryPath.toAbsolutePath().toString();
-		System.out.println("Current Directory = \"" + currentDirectoryName + "\"");
-		
-		List<Employee> emps = readEmployeesFromCSV("/Users/pranavrs/Desktop/CSYE-7374/src/main/java/edu/neu/res/EmployeeRoster.csv ");
+		// System.out.println("Store is open: "+store.getState().isOpen());
 
-        // let's print all the person read from CSV file
-        for (Employee emp : emps) {
-            System.out.println(emp);
-        }
-
-
-		
-
-
-
-		
 		/*
-		 * Facade pattern to invoke initially. Read from CSV, invoke builder/factory to create employee objects.
+		 * Facade pattern to invoke initially. Read from CSV, invoke builder/factory to
+		 * create employee objects.
 		 * 
-		 * Add items to inventory. (Builder/factory pattern) 
+		 * Add items to inventory. (Builder/factory pattern)
 		 * 
 		 * State Pattern to open/close store
 		 * 
-		 * Open store -> Create orders (Builder/prototype/factory) [No order while store is closed]
+		 * Open store -> Create orders (Builder/prototype/factory) [No order while store
+		 * is closed]
 		 * 
-		 * Place an order with decorator (any item to decorate). 
+		 * Place an order with decorator (any item to decorate).
 		 * 
 		 * Observer to invoke command
 		 * 
 		 * Placed order -> Command pattern to generate receipt (with Strategy)/email
 		 * 
-		 * */
-		
-		
+		 */
 
 		/*
 		 * TODO Create objects using Enum, Eager and Lazy factory implementations for
 		 * Item and Person
 		 */
 	}
+
+	/**
+	 * Demonstrating order creating and receipt generation through builder,
+	 * singleton, command, composite, decorator and strategy design pattern
+	 * 
+	 * @param items
+	 */
+	private static void orderCreation(List<SellableAPI> items, String orderName, String desc) {
+		CommandExecution ce = new CommandExecution();
+
+		if (items.size() == 1) {
+			Order.IndividualOrder order = new Order.IndividualOrder.IndividualOrderBuilder().withName(orderName)
+					.withDesc(desc).withPrice(0.0).withId(1).build();
+			order.addItem(order, items.get(0));
+			System.out.println(order);
+
+			// Adapt the order to an item
+			SellableAPI item3 = new OrderAdapter((OrderAPI) order);
+
+			// Use the item methods to get the name and price of the order
+			System.out.println("Item name: " + item3.getItemName());
+			System.out.println("Item price: " + item3.getPrice());
+			ce.addCommand(new GenerateReceiptCmd(order, new InventoryOperations()));
+		} else {
+			ComboOrder.ComboOrderBuilder orderBuilder = new ComboOrder.ComboOrderBuilder().withName(orderName)
+					.withPrice(0.0).withId(1).withDesc(desc);
+			for (SellableAPI item : items) {
+				orderBuilder.addItem(item);
+			}
+			orderBuilder.build();
+			// lazy singleton
+			ComboOrder order = (ComboOrder) ComboOrderComponentFactoryLazySingleton.getInstance()
+					.getObject((OrderAPI) orderBuilder);
+			System.out.println(order);
+			ce.addCommand(new GenerateReceiptCmd(order, new InventoryOperations()));
+		}
+
+		ce.executeCommands();
+	}
+
 }
