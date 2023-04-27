@@ -1110,6 +1110,7 @@ public class Inventory {
 		private double price;
 		private String description;
 		private boolean perishable;
+		private OrderState state;
 		private List<SellableAPI> items = new ArrayList<>();
 
 		public int getId() {
@@ -1151,6 +1152,29 @@ public class Inventory {
 		public void setDescription(String description) {
 			this.description = description;
 		}
+
+		public OrderState getState() {
+			return state;
+		}
+
+//		public void setState(OrderState state) {
+//			this.state = state;
+//		}
+
+		public void orderPlaced() {
+			state = new OrderPlacedState();
+			System.out.println("Order State : " + this.state);
+		}
+
+		public void orderDelivered() {
+			state = new OrderDeliveredState();
+			System.out.println("Order State : " + this.state);
+		}
+		public void orderShipped() {
+			state = new OrderShippedState();
+			System.out.println("Order State : " + this.state);
+		}
+
 
 		public void setPerishable(boolean perishable) {
 			this.perishable = perishable;
@@ -1897,6 +1921,80 @@ public class Inventory {
 		boolean isOpen();
 	}
 
+	public interface OrderState {
+		boolean isDelivered();
+		boolean isShipped();
+		boolean isPlaced();
+	}
+
+	public static class OrderDeliveredState implements OrderState {
+
+		@Override
+		public boolean isDelivered() {
+			return true;
+		}
+
+		@Override
+		public boolean isShipped() {
+			return false;
+		}
+
+		@Override
+		public boolean isPlaced() {
+			return false;
+		}
+
+		@Override
+		public String toString() {
+			return "Delivered";
+		}
+	}
+
+	public static class OrderShippedState implements OrderState {
+
+		@Override
+		public boolean isDelivered() {
+			return false;
+		}
+
+		@Override
+		public boolean isShipped() {
+			return true;
+		}
+
+		@Override
+		public boolean isPlaced() {
+			return false;
+		}
+
+		@Override
+		public String toString() {
+			return "Shipped";
+		}
+	}
+
+	public static class OrderPlacedState implements OrderState {
+
+		@Override
+		public boolean isDelivered() {
+			return false;
+		}
+
+		@Override
+		public boolean isShipped() {
+			return false;
+		}
+
+		@Override
+		public boolean isPlaced() {
+			return true;
+		}
+
+		@Override
+		public String toString() {
+			return "Placed";
+		}
+	}
 	public static class OpenStoreState implements StoreState {
 		public boolean isOpen() {
 			return true;
@@ -1944,7 +2042,9 @@ public class Inventory {
 		System.out.println("Size of PerishableItems list: ");
 		System.out.println(store.getPerishableItems().size());
 
-		orderCreation(store.getAllItems(), "New order", "New order desc");
+		Order order = (Order)orderCreation(store.getAllItems(), "New order", "New order desc");
+		order.orderShipped();
+		order.orderDelivered();
 
 		// Add Items and add employees then run scheduler
 
@@ -1986,13 +2086,14 @@ public class Inventory {
 	 * 
 	 * @param items
 	 */
-	private static void orderCreation(List<SellableAPI> items, String orderName, String desc) {
+	private static OrderAPI orderCreation(List<SellableAPI> items, String orderName, String desc) {
 		CommandExecution ce = new CommandExecution();
 
 		if (items.size() == 1) {
 			Order.IndividualOrder order = new Order.IndividualOrder.IndividualOrderBuilder().withName(orderName)
 					.withDesc(desc).withPrice(0.0).withId(1).build();
 			order.addItem(order, items.get(0));
+			order.orderPlaced();
 			System.out.println(order);
 
 			// Adapt the order to an item
@@ -2002,6 +2103,8 @@ public class Inventory {
 			System.out.println("Item name: " + item3.getItemName());
 			System.out.println("Item price: " + item3.getPrice());
 			ce.addCommand(new GenerateReceiptCmd(order, new InventoryOperations()));
+			ce.executeCommands();
+			return order;
 		} else {
 			ComboOrder.ComboOrderBuilder orderBuilder = new ComboOrder.ComboOrderBuilder().withName(orderName)
 					.withPrice(0.0).withId(1).withDesc(desc);
@@ -2012,11 +2115,12 @@ public class Inventory {
 			// lazy singleton
 			ComboOrder order = (ComboOrder) ComboOrderComponentFactoryLazySingleton.getInstance()
 					.getObject((OrderAPI) orderBuilder);
+			order.orderPlaced();
 			System.out.println(order);
 			ce.addCommand(new GenerateReceiptCmd(order, new InventoryOperations()));
+			ce.executeCommands();
+			return order;
 		}
-
-		ce.executeCommands();
 	}
 
 }
