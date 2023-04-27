@@ -37,16 +37,18 @@ public class Inventory {
 		void sortItems(Comparator<SellableAPI> c);
 	}
 
-	private class Store implements StoreAPI {
+	public static class Store implements StoreAPI {
 		private String name = null;
 		private List<SellableAPI> perishableItemList = new ArrayList<>();
 		private List<SellableAPI> nonPerishableItemList = new ArrayList<>();
 		private List<SellableAPI> allItems = new ArrayList<>();
 		private List<Person> employeeList = new ArrayList<>();
 		FacadeAPI facadeAPI;
+		private StoreState state;
 
 		public Store() {
 			super();
+			this.state = new Inventory.OpenStoreState();
 			facadeAPI = new Facade();
 		}
 
@@ -98,6 +100,18 @@ public class Inventory {
 		public void sortItems(Comparator<SellableAPI> c) {
 			Collections.sort(allItems, c);
 		}
+		
+		public StoreState getState() {
+	        return state;
+	    }
+	    
+	    public void open() {
+	        state = new OpenStoreState();
+	    }
+	    
+	    public void close() {
+	        state = new ClosedStoreState();
+	    }
 
 		/**
 		 * TODO BY STUDENT
@@ -112,7 +126,6 @@ public class Inventory {
 		private String itemTag;
 		private double price;
 		private String description;
-		private String boughtItem;
 		private boolean isPerishable;
 
 		public Item(ItemBuilder builder) {
@@ -182,14 +195,10 @@ public class Inventory {
 
 		}
 
-		public void setbought(String bought) {
-			this.boughtItem = bought;
-		}
-
 		@Override
 		public String toString() {
-			return "id = " + this.id + ", name = " + this.itemTag + ", price = " + this.price + ", Description = "
-					+ this.description + ", Bought Item = " + this.boughtItem;
+			return "Item [id = " + this.id + ", name = " + this.itemTag + ", price = " + this.price + ", Description = "
+					+ this.description + ", Perishable = " + this.isPerishable + "]";
 		}
 
 		@Override
@@ -287,7 +296,8 @@ public class Inventory {
 		public Item getObject(String csv) {
 			int id;
 			String name, description;
-			double Price;
+			double price;
+			boolean perishable;
 			List<String> items = new ArrayList<>();
 
 			Scanner scan = new Scanner(csv);
@@ -298,12 +308,13 @@ public class Inventory {
 			scan.close();
 
 			id = Integer.parseInt(items.get(0));
-			Price = Double.parseDouble(items.get(1));
+			price = Double.parseDouble(items.get(1));
 			name = items.get(2);
 			description = items.get(3);
+			perishable = Boolean.parseBoolean(items.get(4));
 
-			return ItemBuilder.newInstance().setId(id).setItemTag(name).setDescription(description).setPrice(Price)
-					.build();
+			return ItemBuilder.newInstance().setId(id).setItemTag(name).setDescription(description)
+					.setPrice(price).setIsPerishable(perishable).build();
 		}
 
 	}
@@ -315,7 +326,7 @@ public class Inventory {
 			if (factoryType.equalsIgnoreCase("item")) {
 				instance = ItemFactory.getInstance();
 			} else if (factoryType.equalsIgnoreCase("person")) {
-				instance = PeopleFactory.getInstance();
+				instance = PersonFactory.getInstance();
 			} else {
 				instance = null;
 			}
@@ -419,15 +430,15 @@ public class Inventory {
 		}
 	}
 
-	public static class PeopleFactory implements SingletonFactory {
-		private static PeopleFactory instance;
+	public static class PersonFactory implements SingletonFactory {
+		private static PersonFactory instance;
 
-		private PeopleFactory() {
+		private PersonFactory() {
 		}
 
-		synchronized public static PeopleFactory getInstance() {
+		synchronized public static PersonFactory getInstance() {
 			if (instance == null) {
-				instance = new PeopleFactory();
+				instance = new PersonFactory();
 			}
 			return instance;
 		}
@@ -1430,8 +1441,42 @@ public class Inventory {
 	}
 	
 	//Store open/close with state pattern
+	public interface StoreState {
+	    boolean isOpen();
+	}
+
+	public static class OpenStoreState implements StoreState {
+	    public boolean isOpen() {
+	        return true;
+	    }
+	}
+
+	public static class ClosedStoreState implements StoreState {
+	    public boolean isOpen() {
+	        return false;
+	    }
+	}
+
 
 	public static void demo() {
+		
+		Store store = new Inventory.Store();
+		//Store is open
+		System.out.println("Store is open: "+store.getState().isOpen());
+		
+		//Need csv for items like below
+		Item i = Inventory.ItemFactory.getInstance().getObject("1,3.99,Apple,Fruit,true");
+		System.out.println(i);
+		
+		//Need csv for person like below
+		Person p = Inventory.PersonFactory.getInstance().getObject("1,26,fName,lName,120000");
+		System.out.println(p);
+		
+		//Store is close
+		store.close();
+		System.out.println("Store is open: "+store.getState().isOpen());
+		
+		
 		
 		/*
 		 * Facade pattern to invoke initially. Read from CSV, invoke builder/factory to create employee objects.
