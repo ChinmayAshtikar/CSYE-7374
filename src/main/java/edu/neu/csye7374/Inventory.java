@@ -6,9 +6,20 @@ package edu.neu.csye7374;
 import java.io.*;
 import java.text.DecimalFormat;
 import java.util.*;
+import java.util.Properties;
+import java.util.Base64;
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.PasswordAuthentication;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 
 import edu.neu.csye7374.Inventory.Item.ItemBuilder;
 import edu.neu.csye7374.*;
+
+import javax.mail.Session;
 
 
 /**
@@ -120,6 +131,59 @@ public class Inventory {
 		 */
 
 	} // end Store class
+
+	public static class SendEmail{
+
+		Session session;
+		String FromEmail = "daycare23csye6200@gmail.com";
+		String fBase = "eXd6aHlpdXdkc3htbmJqcg==";
+		public SendEmail(){
+			Properties properties = new Properties();
+			properties.put("mail.smtp.auth","true");
+			properties.put("mail.smtp.starttls.enable","true");
+			properties.put("mail.smtp.host","smtp.gmail.com");
+			properties.put("mail.smtp.port",587);
+
+			session = Session.getDefaultInstance(properties,new javax.mail.Authenticator() {
+				protected PasswordAuthentication getPasswordAuthentication(){
+					return new PasswordAuthentication("daycare23csye6200", new String(Base64.getDecoder().decode(fBase)));
+				}
+			});
+		}
+
+		public void sendAnnualReviewMail(Person person) {
+
+			MimeMessage message = new MimeMessage(session);
+			try {
+					message.setFrom(new InternetAddress(FromEmail));
+					message.setSubject("Reminder: Your annual review is due today");
+					message.setText("Dear " + person.getfName()+ "," + "\n" + "Your annual review is due today"+ "\n" + "Sincerly, \n StoreTeam");
+					message.addRecipient(Message.RecipientType.TO, new InternetAddress(person.getEmailID()));
+					Transport.send(message);
+
+			} catch (MessagingException ex) {
+				System.out.println(ex.getMessage());
+			}
+
+		}
+
+		public void sendItemMail(Item item) {
+
+			MimeMessage message = new MimeMessage(session);
+			try {
+				message.setFrom(new InternetAddress(FromEmail));
+				message.setSubject("Reminder: Items Expiry");
+				message.setText("Dear Store Manager" +  "," + "\n" + "Item name : "+ item.getItemName() + " Item will expire in next 10 days"+ "\n" + "Sincerly, \n StoreTeam");
+				message.addRecipient(Message.RecipientType.TO, new InternetAddress("bhatti.r@northeastern.edu"));
+				Transport.send(message);
+
+			} catch (MessagingException ex) {
+				System.out.println(ex.getMessage());
+			}
+
+		}
+
+	}
 
 	public static class Item implements SellableAPI, Comparable<SellableAPI> {
 		private int id;
@@ -247,6 +311,7 @@ public class Inventory {
 	static class Employee extends Person {
 		private boolean isStudent;
 		private boolean isEmployed;
+		private Date hireDate = new Date();
 
 		public Employee(PersonBuilder builder) {
 			super(builder);
@@ -258,6 +323,14 @@ public class Inventory {
 
 		public boolean getIsEmployed() {
 			return isEmployed;
+		}
+
+		public Date getHireDate() {
+			return hireDate;
+		}
+
+		public void setHireDate(Date hireDate) {
+			this.hireDate = hireDate;
 		}
 
 		public void setIsStudent(boolean isStudent) {
@@ -343,6 +416,7 @@ public class Inventory {
 		protected String lName;
 		protected int age;
 		protected double salary;
+		protected String emailID;
 
 		public Person(PersonBuilder builder) {
 			this.id = builder.id;
@@ -350,6 +424,7 @@ public class Inventory {
 			this.lName = builder.lName;
 			this.age = builder.age;
 			this.salary = builder.salary;
+			this.emailID = builder.emailID;
 
 		}
 
@@ -373,13 +448,17 @@ public class Inventory {
 			return salary;
 		}
 
+		public String getEmailID() {
+			return emailID;
+		}
+
 		static class PersonBuilder {
 			private int id;
 			private String fName;
 			private String lName;
 			private int age;
 			private double salary;
-
+			private String emailID;
 			public static PersonBuilder newInstance() {
 				return new PersonBuilder();
 			}
@@ -394,6 +473,11 @@ public class Inventory {
 
 			public PersonBuilder setId(int id) {
 				this.id = id;
+				return this;
+			}
+
+			public PersonBuilder setEmailID(String emailID) {
+				this.emailID = emailID;
 				return this;
 			}
 
