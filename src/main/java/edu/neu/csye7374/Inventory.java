@@ -42,8 +42,6 @@ public class Inventory {
 
 		void addEmployees(Person person);
 
-		void saveEmployees();
-
 		void loadEmployees();
 
 		List<Person> getEmployees();
@@ -110,11 +108,6 @@ public class Inventory {
 			if (!employeeList.contains(person)) {
 				employeeList.add(person);
 			}
-		}
-
-		@Override
-		public void saveEmployees() {
-			facadeAPI.save(employeeList);
 		}
 
 		@Override
@@ -882,48 +875,36 @@ public class Inventory {
 	}
 
 	private static interface FacadeAPI {
-		void save(List<Person> programData);
-
 		List<Person> load();
 	}
 
 	static public class Facade implements FacadeAPI {
-		private static final String fileName = "EmployeeRoster";
-
-		@Override
-		public void save(List<Person> programData) {
-			try (FileOutputStream fileOutputStream = new FileOutputStream(fileName);
-					ObjectOutputStream out = new ObjectOutputStream(fileOutputStream)) {
-
-				for (Person person : programData) {
-					out.writeObject(person);
-				}
-			} catch (IOException e) {
-				System.out.println(e.getMessage());
-			}
-
-		}
+		private static final String fileName = "src/main/resources/Employees.txt";
 
 		@Override
 		public List<Person> load() {
-			List<Person> persons = new ArrayList<>();
+			Inventory inventory = Inventory.getInstance();
+			Store store = inventory.getStore();
+			List<Person> employees = new ArrayList<>();
 
-			try (FileInputStream fileInputStream = new FileInputStream(fileName);
-					ObjectInputStream inputStream = new ObjectInputStream(fileInputStream)) {
-				while (true) {
-					try {
-						Person p = (Person) inputStream.readObject();
-						persons.add(p);
-					} catch (EOFException | ClassNotFoundException e) {
-						break;
-					}
+			try (FileReader fileReader = new FileReader(fileName);
+				BufferedReader br = new BufferedReader(fileReader)) {
+				String line;
+				while((line = br.readLine())!= null && line.length() > 0){
+					Employee emp1 = (Employee) PersonFactory.getInstance()
+							.getObject(line);
+					emp1.setIsEmployed(true);
+					emp1.setHireDate(new Date());
+					employees.add(emp1);
 				}
+				store.getEmployees().addAll(employees);
+
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			return persons;
+			return employees;
 		}
 	}
 
@@ -1918,11 +1899,12 @@ public class Inventory {
 		Person p = Inventory.PersonFactory.getInstance().getObject("1,26,fName,lName,120000,bhatti.r@northeastern.edu");
 		System.out.println(p);
 
-		Employee emp1 = (Employee) PersonFactory.getInstance().getObject("2,33,Sam, Loui, 11000,bhatti.r@northeastern.edu" );
+		Employee emp1 = (Employee) PersonFactory.getInstance().getObject("9,12,Andy, Poi,1000,bhatti.r@northeastern.edu");
 		emp1.setIsEmployed(true);
 		emp1.setHireDate(new Date());
-
+		store.loadEmployees();
 		store.addEmployees(emp1);
+
 		System.out.println(store.getEmployees().size());
 
 		// Add Items and add employees then run scheduler
