@@ -1393,6 +1393,7 @@ public class Inventory {
 		}
 	}
 
+	// To call in the end - generateReceipt and generateEmail
 	interface Command {
 		void execute();
 	}
@@ -1427,10 +1428,27 @@ public class Inventory {
 			}
 		}
 	}
+	
+	//Store open/close with state pattern
 
 	public static void demo() {
 		
-		
+		/*
+		 * Facade pattern to invoke initially. Read from CSV, invoke builder/factory to create employee objects.
+		 * 
+		 * Add items to inventory. (Builder/factory pattern) 
+		 * 
+		 * State Pattern to open/close store
+		 * 
+		 * Open store -> Create orders (Builder/prototype/factory) [No order while store is closed]
+		 * 
+		 * Place an order with decorator (any item to decorate). 
+		 * 
+		 * Observer to invoke command
+		 * 
+		 * Placed order -> Command pattern to generate receipt (with Strategy)/email
+		 * 
+		 * */
 		
 		
 
