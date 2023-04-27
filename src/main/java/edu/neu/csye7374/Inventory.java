@@ -9,6 +9,11 @@ import javax.mail.*;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.util.*;
 
@@ -438,19 +443,93 @@ public class Inventory {
 		Date getExpiryDate();
 	}
         
+	private static List<Employee> readEmployeesFromCSV(String fileName) {
+        List<Employee> emps = new ArrayList<>();
+        Path pathToFile = Paths.get(fileName);
+
+        // create an instance of BufferedReader
+        // using try with resource, Java 7 feature to close resources
+        try (BufferedReader br = Files.newBufferedReader(pathToFile,
+                StandardCharsets.US_ASCII)) {
+
+            // read the first line from the text file
+            String line = br.readLine();
+
+            // loop until all lines are read
+            while (line != null) {
+
+                // use string.split to load a string array with the values from
+                // each line of
+                // the file, using a comma as the delimiter
+                String[] attributes = line.split(",");
+
+                Employee emp = createEmployee(attributes);
+
+                // adding book into ArrayList
+                emps.add(emp);
+
+                // read next line before looping
+                // if end of file reached, line would be null
+                line = br.readLine();
+            }
+
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+
+        return emps;
+    }
+	private static Employee createEmployee(String[] metadata) {
+		int id = Integer.parseInt(metadata[0]);
+        String fName = metadata[1];
+        String lName = metadata[2];
+        int age = Integer.parseInt(metadata[3]);
+        double salary = Double.parseDouble(metadata[4]);
+        String emailId = metadata[5];
+        
+        
+        int price = Integer.parseInt(metadata[1]);
+        String author = metadata[2];
+
+        // create and return book of this metadata
+       
+        return new Employee(EmployeeBuilder.newInstance().setId(id).setAge(age).setfName(fName).setlName(lName)
+        		.setSalary(salary).setEmailID(emailId));
+        //Employee.PersonBuilder.newInstance().setId(id).setAge(age).setfName(fName).setlName(lName)
+		//.setSalary(salary).setEmailID(emailID).build();
+    }
+
         static class EmployeeBuilder extends  edu.neu.csye7374.Inventory.Person.PersonBuilder{
         	private List<Employee> subordinates;
-            public static EmployeeBuilder newInstance() {
+        	private boolean isStudent;
+    		private boolean isEmployed;
+            public boolean isStudent() {
+				return isStudent;
+			}
+
+			public void setStudent(boolean isStudent) {
+				this.isStudent = isStudent;
+			}
+
+			public boolean isEmployed() {
+				return isEmployed;
+			}
+
+			public void setEmployed(boolean isEmployed) {
+				this.isEmployed = isEmployed;
+			}
+
+			public static EmployeeBuilder newInstance() {
 				return new EmployeeBuilder();
 			}
 
 			private EmployeeBuilder() {
 			}
-			public EmployeeBuilder setlName(List<Employee> subordinates) {
+			public EmployeeBuilder setSubordinates(List<Employee> subordinates) {
 				this.subordinates = subordinates;
 				return this;
 			}
-			public Person build() {
+			public Employee build() {
 				return new Employee(this);
 			}
         }
@@ -459,12 +538,17 @@ public class Inventory {
 		private boolean isStudent;
 		private boolean isEmployed;
 		private Date hireDate = new Date();
-		private List<Employee> subordinates;
+		//private List<Employee> subordinates;
 
-		public List<Employee> getSubordinates() {
-			return subordinates;
+//		public List<Employee> getSubordinates() {
+//			return subordinates;
+//		}
+
+		public Employee(EmployeeBuilder builder) {
+			super(builder);
+                        this.isEmployed=builder.isEmployed;
+                        this.isStudent=builder.isStudent;
 		}
-
 		public Employee(PersonBuilder builder) {
 			super(builder);
 		}
@@ -1850,6 +1934,19 @@ public class Inventory {
 		store.close();
 		checkStoreState(store);
 		//System.out.println("Store is open: "+store.getState().isOpen());
+		System.out.println(System. getProperty("user. dir"));
+		Path currentDirectoryPath = FileSystems.getDefault().getPath("");
+		String currentDirectoryName = currentDirectoryPath.toAbsolutePath().toString();
+		System.out.println("Current Directory = \"" + currentDirectoryName + "\"");
+		
+		List<Employee> emps = readEmployeesFromCSV("/Users/pranavrs/Desktop/CSYE-7374/src/main/java/edu/neu/res/EmployeeRoster.csv ");
+
+        // let's print all the person read from CSV file
+        for (Employee emp : emps) {
+            System.out.println(emp);
+        }
+
+
 		
 
 
