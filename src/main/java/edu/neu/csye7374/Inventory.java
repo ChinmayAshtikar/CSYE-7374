@@ -1457,70 +1457,145 @@ public class Inventory {
 	
 	// Observer Pattern to notify when inventory is full
 	
-	public interface Observer {
-	    void update(boolean isFull);
-	}
+//	public interface Observer {
+//	    void update(boolean isFull);
+//	}
+//	
+//	public interface Subject {
+//	    void registerObserver(Observer observer);
+//	    void removeObserver(Observer observer);
+//	    void notifyObservers();
+//	}
+//	
+//	public class User implements Observer {
+//	    private String name;
+//
+//	    public User(String name) {
+//	        this.name = name;
+//	    }
+//
+//	    @Override
+//	    public void update(boolean isFull) {
+//	        if (isFull) {
+//	            System.out.println("Notification to " + name + ": Inventory is full.");
+//	        } else {
+//	            System.out.println("Notification to " + name + ": Inventory is not full.");
+//	        }
+//	    }
+//	}
+//	
+//	public class InventoryStorage implements Subject {
+//	    private List<Observer> observers;
+//	    private int capacity;
+//	    private int itemCount;
+//
+//	    public InventoryStorage(int capacity) {
+//	        observers = new ArrayList<>();
+//	        this.capacity = capacity;
+//	        itemCount = 0;
+//	    }
+//
+//	    @Override
+//	    public void registerObserver(Observer observer) {
+//	        observers.add(observer);
+//	    }
+//
+//	    @Override
+//	    public void removeObserver(Observer observer) {
+//	        observers.remove(observer);
+//	    }
+//
+//	    @Override
+//	    public void notifyObservers() {
+//	        boolean isFull = itemCount == capacity;
+//	        for (Observer observer : observers) {
+//	            observer.update(isFull);
+//	        }
+//	    }
+//
+//	    public void addItem() {
+//	        if (itemCount < capacity) {
+//	            itemCount++;
+//	            notifyObservers();
+//	        }
+//	    }
+//	}
 	
-	public interface Subject {
-	    void registerObserver(Observer observer);
-	    void removeObserver(Observer observer);
-	    void notifyObservers();
-	}
-	
-	public class User implements Observer {
-	    private String name;
 
-	    public User(String name) {
-	        this.name = name;
+	// The Observer interface
+	interface Observer {
+	    void update();
+	}
+
+	// The Observable subject class
+	static class InventoryManager {
+	    private List<Observer> observers = new ArrayList<>();
+	    private int inventoryCount = 0;
+
+	    public int getInventoryCount() {
+	        return inventoryCount;
 	    }
 
-	    @Override
-	    public void update(boolean isFull) {
-	        if (isFull) {
-	            System.out.println("Notification to " + name + ": Inventory is full.");
-	        } else {
-	            System.out.println("Notification to " + name + ": Inventory is not full.");
-	        }
-	    }
-	}
-	
-	public class InventoryStorage implements Subject {
-	    private List<Observer> observers;
-	    private int capacity;
-	    private int itemCount;
-
-	    public InventoryStorage(int capacity) {
-	        observers = new ArrayList<>();
-	        this.capacity = capacity;
-	        itemCount = 0;
+	    public void setInventoryCount(int count) {
+	        inventoryCount = count;
+	        notifyObservers();
 	    }
 
-	    @Override
-	    public void registerObserver(Observer observer) {
+	    public void addObserver(Observer observer) {
 	        observers.add(observer);
 	    }
 
-	    @Override
 	    public void removeObserver(Observer observer) {
 	        observers.remove(observer);
 	    }
 
-	    @Override
 	    public void notifyObservers() {
-	        boolean isFull = itemCount == capacity;
 	        for (Observer observer : observers) {
-	            observer.update(isFull);
-	        }
-	    }
-
-	    public void addItem() {
-	        if (itemCount < capacity) {
-	            itemCount++;
-	            notifyObservers();
+	            observer.update();
 	        }
 	    }
 	}
-	
+
+	// The Command interface
+//	interface Command {
+//	    void execute();
+//	}
+
+	// The Concrete Command class that buys items
+	static class BuyItemsCommand implements Command {
+	    private InventoryManager inventoryManager;
+
+	    public BuyItemsCommand(InventoryManager inventoryManager) {
+	        this.inventoryManager = inventoryManager;
+	    }
+
+	    public void execute() {
+	        if (inventoryManager.getInventoryCount() > 0) { // check if inventory is not empty
+	            System.out.println("Buying items...");
+	            // Code to buy items
+	            inventoryManager.setInventoryCount(inventoryManager.getInventoryCount() - 1); // decrease inventory count
+	        } else {
+	            System.out.println("Inventory is empty, cannot buy items.");
+	        }
+	    }
+	}
+
+	// The Concrete Observer class that invokes the Command
+	static class InventoryObserver implements Observer {
+	    private Command command;
+
+	    public InventoryObserver(Command command) {
+	        this.command = command;
+	    }
+
+	    public void update() {
+	        command.execute();
+	    }
+	}
+
+	// The main method that sets up the Observer and Command pattern
+
+
 	
 
 	public interface IInventoryOperations {
@@ -1584,6 +1659,7 @@ public class Inventory {
 		}
 	}
 	
+	
 	//Store open/close with state pattern
 	public interface StoreState {
 	    boolean isOpen();
@@ -1603,6 +1679,15 @@ public class Inventory {
 
 
 	public static void demo() {
+		
+        InventoryManager inventoryManager = new InventoryManager();
+        BuyItemsCommand buyItemsCommand = new BuyItemsCommand(inventoryManager);
+        InventoryObserver inventoryObserver = new InventoryObserver(buyItemsCommand);
+
+        inventoryManager.addObserver(inventoryObserver);
+        inventoryManager.setInventoryCount(10); // set initial inventory count
+
+        inventoryManager.setInventoryCount(0); // set inventory count to test if the command is invoked or not
 
 		Inventory inventory = Inventory.getInstance();
 		Store store = new Store();
