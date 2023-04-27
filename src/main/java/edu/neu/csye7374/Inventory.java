@@ -806,7 +806,7 @@ public class Inventory {
 			try (FileReader fileReader = new FileReader(fileName);
 				BufferedReader br = new BufferedReader(fileReader)) {
 				String line;
-				while((line = br.readLine())!= null){
+				while((line = br.readLine())!= null && line.length() > 0){
 					Employee emp1 = (Employee) PersonFactory.getInstance()
 							.getObject(line);
 					emp1.setIsEmployed(true);
