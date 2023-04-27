@@ -392,8 +392,7 @@ public class Inventory {
 
 		@Override
 		public String toString() {
-			return "Item [id = " + this.id + ", name = " + this.itemTag + ", price = " + this.price + ", Description = "
-					+ this.description + ", Perishable = " + this.isPerishable + "]";
+			return this.id + " " + this.itemTag + " " + this.price;
 		}
 
 		@Override
@@ -804,7 +803,8 @@ public class Inventory {
 
 		@Override
 		public double getDiscountRate() {
-			return 5;
+			System.out.println("Applying SaleDiscount");
+			return 0.05;
 		}
 
 	}
@@ -813,7 +813,8 @@ public class Inventory {
 
 		@Override
 		public double getDiscountRate() {
-			return 10;
+			System.out.println("Applying PresidentDayDiscount");
+			return 0.10;
 		}
 
 	}
@@ -822,7 +823,8 @@ public class Inventory {
 
 		@Override
 		public double getDiscountRate() {
-			return 15;
+			System.out.println("Applying MemorialDayDiscount");
+			return 0.15;
 		}
 
 	}
@@ -831,7 +833,8 @@ public class Inventory {
 
 		@Override
 		public double getDiscountRate() {
-			return 20;
+			System.out.println("Applying ChristmasDiscount");
+			return 0.20;
 		}
 
 	}
@@ -840,7 +843,8 @@ public class Inventory {
 
 		@Override
 		public double getDiscountRate() {
-			return 25;
+			System.out.println("Applying ClearanceDiscount");
+			return 0.25;
 		}
 
 	}
@@ -849,7 +853,8 @@ public class Inventory {
 
 		@Override
 		public double getDiscountRate() {
-			return 30;
+			System.out.println("Applying WholesalerDiscount");
+			return 0.30;
 		}
 
 	}
@@ -858,7 +863,8 @@ public class Inventory {
 
 		@Override
 		public double getDiscountRate() {
-			return 35;
+			System.out.println("Applying MembersOnlyDiscount");
+			return 0.35;
 		}
 
 	}
@@ -867,7 +873,8 @@ public class Inventory {
 
 		@Override
 		public double getDiscountRate() {
-			return 40;
+			System.out.println("Applying LiquidationDiscount");
+			return 0.40;
 		}
 
 	}
@@ -883,7 +890,7 @@ public class Inventory {
 		}
 
 		public double executeStrategy() {
-			double total = (strategy.getDiscountRate() * order.getPrice()) / 100;
+			double total = (1 - strategy.getDiscountRate()) * order.getPrice();
 			return Double.valueOf(df.format(total));
 		}
 	}
@@ -1828,6 +1835,7 @@ public class Inventory {
 
 		@Override
 		public void generateReceipt(OrderAPI order, DiscountStrategy discount) {
+			DecimalFormat df = new DecimalFormat("##.##");
 			// TODO Auto-generated method stub
 			System.out.println("Optional Menu:");
 
@@ -1841,7 +1849,8 @@ public class Inventory {
 			double price = dc.executeStrategy();
 
 			System.out.println("---------------------------");
-			System.out.println("Order:" + price);
+			System.out.println("Order Total price:" + df.format(order.getPrice()));
+			System.out.println("Order Total price after discount:" + price);
 
 			System.out.println();
 		}
@@ -1934,6 +1943,8 @@ public class Inventory {
 		System.out.println(store.getNonPerishableItems().size());
 		System.out.println("Size of PerishableItems list: ");
 		System.out.println(store.getPerishableItems().size());
+
+		orderCreation(store.getAllItems(), "New order", "New order desc");
 
 		// Add Items and add employees then run scheduler
 
