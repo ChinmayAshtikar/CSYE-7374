@@ -3,23 +3,14 @@
  */
 package edu.neu.csye7374;
 
+import edu.neu.csye7374.Inventory.Item.ItemBuilder;
+
+import javax.mail.*;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 import java.io.*;
 import java.text.DecimalFormat;
 import java.util.*;
-import java.util.Properties;
-import java.util.Base64;
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.PasswordAuthentication;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
-
-import edu.neu.csye7374.Inventory.Item.ItemBuilder;
-import edu.neu.csye7374.*;
-
-import javax.mail.Session;
 
 
 /**
@@ -51,6 +42,12 @@ public class Inventory {
 		void loadEmployees();
 
 		List<Person> getEmployees();
+
+		List<SellableAPI> getPerishableItems();
+
+		List<SellableAPI> getNonPerishableItems();
+
+		List<SellableAPI> getAllItems();
 
 		void sortEmployees(Comparator<Person> c);
 
@@ -84,6 +81,13 @@ public class Inventory {
 
 			if (item != null) {
 				if (item.isPerishable() && !perishableItemList.contains(item)) {
+					Date today = new Date();
+					Calendar calendar = Calendar.getInstance();
+					calendar.setTime(today);
+					calendar.add(Calendar.DAY_OF_MONTH, 10);
+					Date expiry = calendar.getTime();
+					item.setExpiryDate(expiry);
+					System.out.println("M Date: " + today + " Expiry Date: " + item.getExpiryDate());
 					perishableItemList.add(item);
 					allItems.add(item);
 				}
@@ -119,6 +123,21 @@ public class Inventory {
 		}
 
 		@Override
+		public List<SellableAPI> getPerishableItems() {
+			return perishableItemList;
+		}
+
+		@Override
+		public List<SellableAPI> getNonPerishableItems() {
+			return nonPerishableItemList;
+		}
+
+		@Override
+		public List<SellableAPI> getAllItems() {
+			return allItems;
+		}
+
+		@Override
 		public void sortEmployees(Comparator<Person> c) {
 			Collections.sort(employeeList, c);
 		}
@@ -150,7 +169,6 @@ public class Inventory {
 
 	public static class AnnualReviewTask extends TimerTask {
 		Inventory inventory = Inventory.getInstance();
-
 		List<Person> employees = inventory.getStore().getEmployees();
 		Date curr = new Date();
 		int currDay = curr.getDay();
@@ -170,13 +188,49 @@ public class Inventory {
 					if(day == currDay && month == currMonth && (currYear-year == 1)){
 						sendMail.sendAnnualReviewMail(p);
 					}
+
+					//Testing
+//					if(true){
+//						sendMail.sendAnnualReviewMail(p);
+//					}
 				}
 			}
 
 		}
 	}
 
+	public static class PerishableItemTask extends TimerTask {
+		Inventory inventory = Inventory.getInstance();
+		List<SellableAPI> perishableItems = inventory.getStore().getPerishableItems();
+		Date currentDate = new Date();
+		SendEmail sendEmail = new SendEmail();
 
+
+		@Override
+		public void run() {
+
+			for(SellableAPI item : perishableItems) {
+				if(item.getExpiryDate() != null) {
+					Date expiry = item.getExpiryDate();
+					Calendar calendar = Calendar.getInstance();
+					calendar.setTime(expiry);
+					// subtract 10 days from the expiry date
+					calendar.add(Calendar.DAY_OF_MONTH, -10);
+					Date tenDaysAgo = calendar.getTime();
+
+					if(currentDate.getTime() - tenDaysAgo.getTime() == 0){
+						sendEmail.sendItemMail(item);
+					}
+//					if(true){
+//						sendEmail.sendItemMail(item);
+//					}
+
+				}
+
+
+			}
+		}
+	}
 
 	public static class TaskScheduler {
 
@@ -184,11 +238,11 @@ public class Inventory {
 		public static void scheduleTasks(){
 
 			Timer timer = new Timer();
-//			timer.schedule(new AnnualReviewTask(), 0, 240000);
+			timer.schedule(new AnnualReviewTask(), 0, 180000);
+			timer.schedule(new PerishableItemTask(), 0, 180000);
 
-        timer.schedule(new AnnualReviewTask(), 0, 24 * 60 * 60 * 1000); //runs every day
-
-
+//			timer.schedule(new AnnualReviewTask(), 0, 24 * 60 * 60 * 1000); //runs every day
+//			timer.schedule(new PerishableItemTask(), 0, 24 * 60 * 60 * 1000);
 		}
 	}
 
@@ -212,22 +266,23 @@ public class Inventory {
 		}
 
 		public void sendAnnualReviewMail(Person person) {
-
-			MimeMessage message = new MimeMessage(session);
-			try {
+			if(person != null) {
+				MimeMessage message = new MimeMessage(session);
+				try {
 					message.setFrom(new InternetAddress(FromEmail));
 					message.setSubject("Reminder: Your annual review is due today");
 					message.setText("Dear " + person.getfName()+ "," + "\n" + "Your annual review is due today"+ "\n" + "Sincerly, \n StoreTeam");
-					message.addRecipient(Message.RecipientType.TO, new InternetAddress(person.getEmailID()));
-					Transport.send(message);
-
-			} catch (MessagingException ex) {
-				System.out.println(ex.getMessage());
+					if(person.getEmailID() != null) {
+						message.addRecipient(Message.RecipientType.TO, new InternetAddress(person.getEmailID()));
+						Transport.send(message);
+					}
+				} catch (MessagingException ex) {
+					System.out.println(ex.getMessage());
+				}
 			}
-
 		}
 
-		public void sendItemMail(Item item) {
+		public void sendItemMail(SellableAPI item) {
 
 			MimeMessage message = new MimeMessage(session);
 			try {
@@ -251,6 +306,7 @@ public class Inventory {
 		private double price;
 		private String description;
 		private boolean isPerishable;
+		private Date expiryDate;
 
 		public Item(ItemBuilder builder) {
 			this.id = builder.id;
@@ -272,6 +328,16 @@ public class Inventory {
 		public int compareTo(SellableAPI o) {
 			Item new_o = (Item) o;
 			return this.getId() - new_o.getId();
+		}
+
+		@Override
+		public Date getExpiryDate() {
+			return expiryDate;
+		}
+
+		@Override
+		public void setExpiryDate(Date expiryDate) {
+			this.expiryDate = expiryDate;
 		}
 
 		public static class ItemBuilder {
@@ -366,6 +432,10 @@ public class Inventory {
 		String getDescription();
 
 		boolean isPerishable();
+
+		void setExpiryDate(Date d);
+
+		Date getExpiryDate();
 	}
         
         static class EmployeeBuilder extends  edu.neu.csye7374.Inventory.Person.PersonBuilder{
@@ -615,6 +685,7 @@ public class Inventory {
 			int id, age;
 			double salary;
 			String fName, lName;
+			String emailID;
 			List<String> people = new ArrayList<>();
 
 			Scanner scan = new Scanner(csv);
@@ -629,9 +700,10 @@ public class Inventory {
 			fName = people.get(2);
 			lName = people.get(3);
 			salary = Double.parseDouble(people.get(4));
+			emailID = people.get(5);
 
 			return Employee.PersonBuilder.newInstance().setId(id).setAge(age).setfName(fName).setlName(lName)
-					.setSalary(salary).build();
+					.setSalary(salary).setEmailID(emailID).build();
 		}
 
 	}
@@ -812,6 +884,16 @@ public class Inventory {
 		public boolean isPerishable() {
 			// TODO Auto-generated method stub
 			return order.isPerishable();
+		}
+
+		@Override
+		public void setExpiryDate(Date d) {
+
+		}
+
+		@Override
+		public Date getExpiryDate() {
+			return new Date();
 		}
 	}
 
@@ -1430,6 +1512,16 @@ public class Inventory {
 			return item.isPerishable();
 		}
 
+		@Override
+		public void setExpiryDate(Date d) {
+
+		}
+
+		@Override
+		public Date getExpiryDate() {
+			return null;
+		}
+
 	}
 
 	static class InsuranceDecorator extends ItemDecoratorAPI {
@@ -1725,6 +1817,7 @@ public class Inventory {
 
         inventoryManager.setInventoryCount(0); // set inventory count to test if the command is invoked or not
 
+
 		Inventory inventory = Inventory.getInstance();
 		Store store = new Store();
 		inventory.setStore(store);
@@ -1734,18 +1827,33 @@ public class Inventory {
 		
 		//Need csv for items like below
 		Item i = Inventory.ItemFactory.getInstance().getObject("1,3.99,Apple,Fruit,true");
+		store.add(i);
 		System.out.println(i);
 		
 		//Need csv for person like below
-		Person p = Inventory.PersonFactory.getInstance().getObject("1,26,fName,lName,120000");
+		Person p = Inventory.PersonFactory.getInstance().getObject("1,26,fName,lName,120000,bhatti.r@northeastern.edu");
 		System.out.println(p);
-		
+
+		Employee emp1 = (Employee) PersonFactory.getInstance().getObject("2,33,Sam, Loui, 11000,bhatti.r@northeastern.edu" );
+		emp1.setIsEmployed(true);
+		emp1.setHireDate(new Date());
+
+		store.addEmployees(emp1);
+		System.out.println(store.getEmployees().size());
+
+		// Add Items and add employees then run scheduler
+
+		TaskScheduler.scheduleTasks();
+
+
 		//Store is close
 		store.close();
 		checkStoreState(store);
 		//System.out.println("Store is open: "+store.getState().isOpen());
 		
-		
+
+
+
 		
 		/*
 		 * Facade pattern to invoke initially. Read from CSV, invoke builder/factory to create employee objects.
