@@ -3,19 +3,30 @@
  */
 package edu.neu.csye7374;
 
-import edu.neu.csye7374.*;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
+import java.util.Properties;
+import java.util.Scanner;
+import java.util.Timer;
+import java.util.TimerTask;
 
-import javax.mail.*;
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.PasswordAuthentication;
+import javax.mail.Session;
+import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.text.DecimalFormat;
-import java.util.*;
 
 /**
  * @author pratiknakave
@@ -442,63 +453,8 @@ public class Inventory {
 		Date getExpiryDate();
 	}
 
-	private static List<Employee> readEmployeesFromCSV(String fileName) {
-		List<Employee> emps = new ArrayList<>();
-		Path pathToFile = Paths.get(fileName);
-
-		// create an instance of BufferedReader
-		// using try with resource, Java 7 feature to close resources
-		try (BufferedReader br = Files.newBufferedReader(pathToFile, StandardCharsets.US_ASCII)) {
-
-			// read the first line from the text file
-			String line = br.readLine();
-
-			// loop until all lines are read
-			while (line != null) {
-
-				// use string.split to load a string array with the values from
-				// each line of
-				// the file, using a comma as the delimiter
-				String[] attributes = line.split(",");
-
-				Employee emp = createEmployee(attributes);
-
-				// adding book into ArrayList
-				emps.add(emp);
-
-				// read next line before looping
-				// if end of file reached, line would be null
-				line = br.readLine();
-			}
-
-		} catch (IOException ioe) {
-			ioe.printStackTrace();
-		}
-
-		return emps;
-	}
-
-	private static Employee createEmployee(String[] metadata) {
-		int id = Integer.parseInt(metadata[0]);
-		String fName = metadata[1];
-		String lName = metadata[2];
-		int age = Integer.parseInt(metadata[3]);
-		double salary = Double.parseDouble(metadata[4]);
-		String emailId = metadata[5];
-
-		int price = Integer.parseInt(metadata[1]);
-		String author = metadata[2];
-
-		// create and return book of this metadata
-
-		return new Employee(EmployeeBuilder.newInstance().setId(id).setAge(age).setfName(fName).setlName(lName)
-				.setSalary(salary).setEmailID(emailId));
-		// Employee.PersonBuilder.newInstance().setId(id).setAge(age).setfName(fName).setlName(lName)
-		// .setSalary(salary).setEmailID(emailID).build();
-	}
-
 	static class EmployeeBuilder extends edu.neu.csye7374.Inventory.Person.PersonBuilder {
-		private List<Employee> subordinates;
+		
 		private boolean isStudent;
 		private boolean isEmployed;
 
@@ -525,25 +481,16 @@ public class Inventory {
 		private EmployeeBuilder() {
 		}
 
-		public EmployeeBuilder setSubordinates(List<Employee> subordinates) {
-			this.subordinates = subordinates;
-			return this;
-		}
 
 		public Employee build() {
 			return new Employee(this);
 		}
 	}
 
-	static class Employee extends Person {
+	static class Employee extends Person implements Cloneable{
 		private boolean isStudent;
 		private boolean isEmployed;
 		private Date hireDate = new Date();
-		// private List<Employee> subordinates;
-
-//		public List<Employee> getSubordinates() {
-//			return subordinates;
-//		}
 
 		public Employee(EmployeeBuilder builder) {
 			super(builder);
@@ -577,6 +524,15 @@ public class Inventory {
 
 		public void setIsEmployed(boolean isEmployed) {
 			this.isEmployed = isEmployed;
+		}
+		
+		@Override
+		public Employee clone() {
+			try {
+				return (Employee) super.clone();
+			} catch (CloneNotSupportedException e) {
+				throw new AssertionError();
+			}
 		}
 
 		@Override
@@ -1702,155 +1658,6 @@ public class Inventory {
 
 	}
 
-	// Observer Pattern to notify when inventory is full
-
-//	public interface Observer {
-//	    void update(boolean isFull);
-//	}
-//	
-//	public interface Subject {
-//	    void registerObserver(Observer observer);
-//	    void removeObserver(Observer observer);
-//	    void notifyObservers();
-//	}
-//	
-//	public class User implements Observer {
-//	    private String name;
-//
-//	    public User(String name) {
-//	        this.name = name;
-//	    }
-//
-//	    @Override
-//	    public void update(boolean isFull) {
-//	        if (isFull) {
-//	            System.out.println("Notification to " + name + ": Inventory is full.");
-//	        } else {
-//	            System.out.println("Notification to " + name + ": Inventory is not full.");
-//	        }
-//	    }
-//	}
-//	
-//	public class InventoryStorage implements Subject {
-//	    private List<Observer> observers;
-//	    private int capacity;
-//	    private int itemCount;
-//
-//	    public InventoryStorage(int capacity) {
-//	        observers = new ArrayList<>();
-//	        this.capacity = capacity;
-//	        itemCount = 0;
-//	    }
-//
-//	    @Override
-//	    public void registerObserver(Observer observer) {
-//	        observers.add(observer);
-//	    }
-//
-//	    @Override
-//	    public void removeObserver(Observer observer) {
-//	        observers.remove(observer);
-//	    }
-//
-//	    @Override
-//	    public void notifyObservers() {
-//	        boolean isFull = itemCount == capacity;
-//	        for (Observer observer : observers) {
-//	            observer.update(isFull);
-//	        }
-//	    }
-//
-//	    public void addItem() {
-//	        if (itemCount < capacity) {
-//	            itemCount++;
-//	            notifyObservers();
-//	        }
-//	    }
-//	}
-
-	// The Observer interface
-	interface Observer {
-		void update();
-	}
-
-	// The Observable subject class
-	static class InventoryManager {
-		private List<Observer> observers = new ArrayList<>();
-		private int inventoryCount = 0;
-
-		public int getInventoryCount() {
-			return inventoryCount;
-		}
-
-		public void setInventoryCount(int count) {
-			inventoryCount = count;
-			notifyObservers();
-		}
-
-		public void addObserver(Observer observer) {
-			observers.add(observer);
-		}
-
-		public void removeObserver(Observer observer) {
-			observers.remove(observer);
-		}
-
-		public void notifyObservers() {
-			for (Observer observer : observers) {
-				observer.update();
-			}
-		}
-	}
-
-	// The Command interface
-//	interface Command {
-//	    void execute();
-//	}
-
-	// The Concrete Command class that buys items
-//	static class BuyItemsCommand implements Command {
-//		private InventoryManager inventoryManager;
-//		private Producer producer;
-//		private Consumer consumer;
-//
-//		public BuyItemsCommand(InventoryManager inventoryManager) {
-//			this.inventoryManager = inventoryManager;
-//		}
-//
-//		public BuyItemsCommand(InventoryManager inventoryManager, Producer producer, Consumer consumer) {
-//			this.inventoryManager = inventoryManager;
-//			this.producer = producer;
-//			this.consumer = consumer;
-//		}
-//
-//		public void execute() {
-//			if (inventoryManager.getInventoryCount() > 0) { // check if inventory is not empty
-//				System.out.println("Buying items...");
-//				// producer.updateMoney(0);
-//				// Code to buy items
-//				inventoryManager.setInventoryCount(inventoryManager.getInventoryCount() - 1); // decrease inventory
-//																								// count
-//			} else {
-//				System.out.println("Inventory is empty, cannot buy items.");
-//			}
-//		}
-//	}
-
-	// The Concrete Observer class that invokes the Command
-	static class InventoryObserver implements Observer {
-		private Command command;
-
-		public InventoryObserver(Command command) {
-			this.command = command;
-		}
-
-		public void update() {
-			command.execute();
-		}
-	}
-
-	// The main method that sets up the Observer and Command pattern
-
 	public interface IInventoryOperations {
 		public void generateReceipt(OrderAPI order, DiscountStrategy discount);
 	}
@@ -2013,17 +1820,17 @@ public class Inventory {
 		else
 			System.out.println("Store is closed.");
 	}
+	
+	
+	
+	
+	
+	
 
 	public static void demo() {
-
-		InventoryManager inventoryManager = new InventoryManager();
-		// InventoryObserver inventoryObserver = new InventoryObserver(buyItemsCommand);
-
-//		inventoryManager.addObserver(inventoryObserver);
-//		inventoryManager.setInventoryCount(10); // set initial inventory count
-//
-//		inventoryManager.setInventoryCount(0); // set inventory count to test if the command is invoked or not
-
+        
+        
+		
 		Inventory inventory = Inventory.getInstance();
 		Store store = new Store();
 		inventory.setStore(store);
@@ -2043,6 +1850,7 @@ public class Inventory {
 		System.out.println(store.getPerishableItems().size());
 
 		Order order = (Order)orderCreation(store.getAllItems(), "New order", "New order desc");
+		
 		order.orderShipped();
 		order.orderDelivered();
 
