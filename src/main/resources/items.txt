@@ -1,5 +1,10 @@
 1,3.99,Apple,Fruit,true
-2,4.99,Apple,Fruit,false
-3,5.99,Apple,Fruit,true
-4,6.99,Apple,Fruit,true
-5,7.99,Apple,Fruit,false
+2,4.99,Mango,Fruit,true
+3,5.99,Table,Furniture,false
+4,6.99,Chair,Furniture,false
+5,7.99,TV,Furniture,false
+6,8.99,Grapes,Fruit,true
+7,9.99,Kiwi,Fruit,true
+8,10.99,Pen,Stationary,false
+9,11.99,Pencil,Stationary,false
+10,12.99,Book,Stationary,false

@@ -907,6 +907,50 @@ public class Inventory {
 		}
 	}
 
+	public static interface InventoryObserver {
+		void update(String itemName, int quantity);
+	}
+
+	public static class InventorySubject {
+		private List<InventoryObserver> observers = new ArrayList<>();
+		private String itemName;
+		private int quantity;
+
+		public void attach(InventoryObserver observer) {
+			observers.add(observer);
+		}
+
+		public void detach(InventoryObserver observer) {
+			observers.remove(observer);
+		}
+
+		public void updateInventory(String itemName, int quantity) {
+			this.itemName = itemName;
+			this.quantity = quantity;
+			notifyObservers();
+		}
+
+		private void notifyObservers() {
+			for (InventoryObserver observer : observers) {
+				observer.update(itemName, quantity);
+			}
+		}
+	}
+
+	public static class InventoryObserverImpl implements InventoryObserver {
+		private String observerName;
+
+		public InventoryObserverImpl(String observerName) {
+			this.observerName = observerName;
+		}
+
+		@Override
+		public void update(String itemName, int quantity) {
+			System.out.println(observerName + " - Inventory updated for " + itemName + ". New quantity is " + quantity);
+		}
+	}
+
+
 	/*
 	 * Enum, Eager and Lazy factory implementations for Order
 	 */
@@ -1854,6 +1898,19 @@ public class Inventory {
 		order.orderShipped();
 		order.orderDelivered();
 
+		InventorySubject inventorySubject = new InventorySubject();
+		InventoryObserver observer1 = new InventoryObserverImpl("Buyer 1");
+		InventoryObserver observer2 = new InventoryObserverImpl("Buyer 2");
+		inventorySubject.attach(observer1);
+		inventorySubject.attach(observer2);
+		System.out.println("Inventory updated");
+		inventorySubject.updateInventory("Item 1", 10);
+
+		System.out.println("Buyer 2 removed");
+		inventorySubject.detach(observer2);
+		System.out.println("Inventory updated");
+		inventorySubject.updateInventory("Item 2", 5);
+
 		// Add Items and add employees then run scheduler
 
 		TaskScheduler.scheduleTasks();
@@ -1861,7 +1918,7 @@ public class Inventory {
 		// Store is close
 		store.close();
 		checkStoreState(store);
-		// System.out.println("Store is open: "+store.getState().isOpen());
+
 
 		/*
 		 * Facade pattern to invoke initially. Read from CSV, invoke builder/factory to
