@@ -8,17 +8,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-import java.util.Properties;
-import java.util.Scanner;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -759,7 +749,7 @@ public class Inventory {
 
 		@Override
 		public double getDiscountRate() {
-			System.out.println("Applying SaleDiscount");
+			System.out.println("Applying SaleDiscount 5%");
 			return 0.05;
 		}
 
@@ -769,7 +759,7 @@ public class Inventory {
 
 		@Override
 		public double getDiscountRate() {
-			System.out.println("Applying PresidentDayDiscount");
+			System.out.println("Applying PresidentDayDiscount 10%");
 			return 0.10;
 		}
 
@@ -779,7 +769,7 @@ public class Inventory {
 
 		@Override
 		public double getDiscountRate() {
-			System.out.println("Applying MemorialDayDiscount");
+			System.out.println("Applying MemorialDayDiscount 15%");
 			return 0.15;
 		}
 
@@ -789,7 +779,7 @@ public class Inventory {
 
 		@Override
 		public double getDiscountRate() {
-			System.out.println("Applying ChristmasDiscount");
+			System.out.println("Applying ChristmasDiscount 20%");
 			return 0.20;
 		}
 
@@ -799,7 +789,7 @@ public class Inventory {
 
 		@Override
 		public double getDiscountRate() {
-			System.out.println("Applying ClearanceDiscount");
+			System.out.println("Applying ClearanceDiscount 25%");
 			return 0.25;
 		}
 
@@ -809,7 +799,7 @@ public class Inventory {
 
 		@Override
 		public double getDiscountRate() {
-			System.out.println("Applying WholesalerDiscount");
+			System.out.println("Applying WholesalerDiscount 30%");
 			return 0.30;
 		}
 
@@ -1657,7 +1647,7 @@ public class Inventory {
 	}
 
 	static class InsuranceDecorator extends ItemDecoratorAPI {
-		private static final double INSURANCE_PRICE = 100.0;
+		private static final double INSURANCE_PRICE = 10.0;
 
 		public InsuranceDecorator(SellableAPI item) {
 			super(item);
@@ -1712,7 +1702,7 @@ public class Inventory {
 		public void generateReceipt(OrderAPI order, DiscountStrategy discount) {
 			DecimalFormat df = new DecimalFormat("##.##");
 			// TODO Auto-generated method stub
-			System.out.println("Optional Menu:");
+			System.out.println("Order receipt:");
 
 			StringBuilder builder = new StringBuilder();
 			builder.append("Id").append("\t").append("Name").append("\t").append("Price").append("\n");
@@ -1872,19 +1862,26 @@ public class Inventory {
 	
 
 	public static void demo() {
-        
-        
-		
+
+
+		System.out.println("===================================");
+		System.out.println("Implemented Eager Singleton Pattern to create Inventory instance");
+		System.out.println("===================================");
 		Inventory inventory = Inventory.getInstance();
 		Store store = new Store();
 		inventory.setStore(store);
 
 		// Store is open
 		System.out.println("Store is open: " + store.getState().isOpen());
-
+		System.out.println("===================================");
+		System.out.println("Creating Employees using Builder pattern, AbstractFactory, Prototype  and Facade Pattern");
+		System.out.println("===================================");
 		store.loadEmployees();
 		System.out.println("Size of Employees list: ");
 		System.out.println(store.getEmployees().size());
+		System.out.println("===================================");
+		System.out.println("Creating Items using Builder pattern, AbstractFactory and Facade Pattern");
+		System.out.println("===================================");
 		store.loadItems();
 		System.out.println("Size of Item list: ");
 		System.out.println(store.getAllItems().size());
@@ -1892,12 +1889,24 @@ public class Inventory {
 		System.out.println(store.getNonPerishableItems().size());
 		System.out.println("Size of PerishableItems list: ");
 		System.out.println(store.getPerishableItems().size());
+		System.out.println("===================================");
+		System.out.println("Creating Bulk Order using Composite pattern, Builder pattern, AbstractFactory and Applying Discount using Strategy pattern");
+		System.out.println("===================================");
+		Order order = (Order)orderCreation(store.getAllItems(), "Bulk Order", "Refilling inventory");
 
-		Order order = (Order)orderCreation(store.getAllItems(), "New order", "New order desc");
-		
 		order.orderShipped();
 		order.orderDelivered();
 
+		System.out.println("===================================");
+		System.out.println("Creating Single Order using Builder pattern, AbstractFactory and Applying Discount using Strategy pattern");
+		System.out.println("===================================");
+		Order singleOrder = (Order)orderCreation(Arrays.asList(store.getAllItems().get(0)), "Single order", "New order desc");
+		singleOrder.orderShipped();
+		singleOrder.orderDelivered();
+
+		System.out.println("===================================");
+		System.out.println("Observer pattern -> To track the Item");
+		System.out.println("===================================");
 		InventorySubject inventorySubject = new InventorySubject();
 		InventoryObserver observer1 = new InventoryObserverImpl("Buyer 1");
 		InventoryObserver observer2 = new InventoryObserverImpl("Buyer 2");
@@ -1912,37 +1921,15 @@ public class Inventory {
 		inventorySubject.updateInventory("Item 2", 5);
 
 		// Add Items and add employees then run scheduler
-
+		System.out.println("===================================");
+		System.out.println("Implemented Email functionality for Annual Review Tracker and Perishable Item Tracker");
+		System.out.println("===================================");
 		TaskScheduler.scheduleTasks();
 
 		// Store is close
 		store.close();
 		checkStoreState(store);
 
-
-		/*
-		 * Facade pattern to invoke initially. Read from CSV, invoke builder/factory to
-		 * create employee objects.
-		 * 
-		 * Add items to inventory. (Builder/factory pattern)
-		 * 
-		 * State Pattern to open/close store
-		 * 
-		 * Open store -> Create orders (Builder/prototype/factory) [No order while store
-		 * is closed]
-		 * 
-		 * Place an order with decorator (any item to decorate).
-		 * 
-		 * Observer to invoke command
-		 * 
-		 * Placed order -> Command pattern to generate receipt (with Strategy)/email
-		 * 
-		 */
-
-		/*
-		 * TODO Create objects using Enum, Eager and Lazy factory implementations for
-		 * Item and Person
-		 */
 	}
 
 	/**
@@ -1957,11 +1944,18 @@ public class Inventory {
 		if (items.size() == 1) {
 			Order.IndividualOrder order = new Order.IndividualOrder.IndividualOrderBuilder().withName(orderName)
 					.withDesc(desc).withPrice(0.0).withId(1).build();
-			order.addItem(order, items.get(0));
+			System.out.println("Decorator Pattern -> Adding insurance to Item :-" + items.get(0).getItemName());
+			System.out.println("Item Price before insurance :-" + items.get(0).getPrice());
+			ItemDecoratorAPI itemDecoratorAPI = new InsuranceDecorator(items.get(0));
+			System.out.println("Updated item :-"+ itemDecoratorAPI.getName() + "  " +itemDecoratorAPI.getPrice());
+			order.addItem(order, itemDecoratorAPI.item);
 			order.orderPlaced();
 			System.out.println(order);
 
 			// Adapt the order to an item
+			System.out.println("===================================");
+			System.out.println("Adapter Pattern -> Adapting OrderAPI to support ItemAPI");
+			System.out.println("===================================");
 			SellableAPI item3 = new OrderAdapter((OrderAPI) order);
 
 			// Use the item methods to get the name and price of the order
@@ -1983,6 +1977,9 @@ public class Inventory {
 			order.orderPlaced();
 			System.out.println(order);
 			ce.addCommand(new GenerateReceiptCmd(order, new InventoryOperations()));
+			System.out.println("===================================");
+			System.out.println("Command pattern -> To generate Order receipt");
+			System.out.println("===================================");
 			ce.executeCommands();
 			return order;
 		}
