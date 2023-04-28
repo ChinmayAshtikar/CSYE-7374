@@ -1590,10 +1590,10 @@ public class Inventory {
 	 */
 
 	// Decorator design pattern
-	static class ItemDecoratorAPI implements SellableAPI {
+	static class ItemDecorator implements SellableAPI {
 		private final SellableAPI item;
 
-		public ItemDecoratorAPI(SellableAPI item) {
+		public ItemDecorator(SellableAPI item) {
 			this.item = item;
 		}
 
@@ -1646,7 +1646,7 @@ public class Inventory {
 
 	}
 
-	static class InsuranceDecorator extends ItemDecoratorAPI {
+	static class InsuranceDecorator extends ItemDecorator {
 		private static final double INSURANCE_PRICE = 10.0;
 
 		public InsuranceDecorator(SellableAPI item) {
@@ -1946,7 +1946,7 @@ public class Inventory {
 					.withDesc(desc).withPrice(0.0).withId(1).build();
 			System.out.println("Decorator Pattern -> Adding insurance to Item :-" + items.get(0).getItemName());
 			System.out.println("Item Price before insurance :-" + items.get(0).getPrice());
-			ItemDecoratorAPI itemDecoratorAPI = new InsuranceDecorator(items.get(0));
+			ItemDecorator itemDecoratorAPI = new InsuranceDecorator(items.get(0));
 			System.out.println("Updated item :-"+ itemDecoratorAPI.getName() + "  " +itemDecoratorAPI.getPrice());
 			order.addItem(order, itemDecoratorAPI.item);
 			order.orderPlaced();
